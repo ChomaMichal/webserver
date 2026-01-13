@@ -1,7 +1,7 @@
 #pragma once
 #include "../utils/Option.hpp"
 #include "../utils/Result.hpp"
-#include "Request.hpp"
+#include "Requests.hpp"
 #include <iostream>
 #include <sys/socket.h>
 #include <unistd.h>

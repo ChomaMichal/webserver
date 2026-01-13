@@ -71,4 +71,9 @@ public:
       return value;
   }
   ~Result() {}
+  void put_error(std::string &err) {
+    this->correct = false;
+    this->checked = false;
+    this->error_message = err;
+  }
 };
