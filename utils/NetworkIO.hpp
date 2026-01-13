@@ -13,14 +13,18 @@ public:
   struct _finish {};
   NetworkIO();
   NetworkIO(NetworkIO &other);
+  NetworkIO(int fd) : fd(fd), buffer("") {}
   NetworkIO &operator=(NetworkIO &other);
   ~NetworkIO();
+  void setFd(int fd) { this->fd = fd; }
   NetworkIO &operator>>(std::string &recieve);
   NetworkIO &operator<<(_finish &value);
   template <typename T> NetworkIO &operator<<(const T &value) {
     std::ostringstream os;
-    buffer.append((os << value).str());
+    os << value;
+    buffer.append(os.str());
     return (*this);
   }
 };
-extern NetworkIO::_finish send;
+
+extern NetworkIO::_finish sendData;

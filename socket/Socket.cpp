@@ -7,14 +7,18 @@
 
 Socket::Socket() {
   this->fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
-  struct sockaddr data;
 }
 
 Socket::~Socket() { close(this->fd); }
-Socket::Socket(const Socket &other) { *this = other; }
+Socket::Socket(const Socket &other) { this->fd = dup(other.fd); }
 
 Socket &Socket::operator=(const Socket &other) {
-  this->fd = other.fd;
+  if (this != &other) {
+    if (this->fd != -1) {
+      close(this->fd);
+    }
+    this->fd = dup(other.fd);
+  }
   return (*this);
 }
 
@@ -24,7 +28,7 @@ Result<Option<int>> Socket::accept() {
   int fd = ::accept(this->getFd(), NULL, NULL);
   if (fd == -1) {
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
-      Option<int> none(false);
+      Option<int> none(true);
       Result<Option<int>> rt(none);
       return (rt);
     } else {
@@ -56,7 +60,7 @@ Result<Socket> Socket::bind() {
     return rt;
   }
 
-  if (::listen(socket.getFd(), SOMAXCONN)) {
+  if (::listen(socket.getFd(), SOMAXCONN) == -1) {
     Result<Socket> rt = Result<Socket>(false, "Failed to listen in socket\n");
     return rt;
   }
@@ -81,6 +85,10 @@ Result<Socket> Socket::connect() {
 
   if (::connect(socket.getFd(), (struct sockaddr *)&server_adress,
                 sizeof(sockaddr_in)) == -1) {
+    if (errno == EINPROGRESS) {
+      Result<Socket> rt = Result<Socket>(socket);
+      return (rt);
+    }
     Result<Socket> rt = Result<Socket>(false, "Failed to connect socket\n");
     return rt;
   }

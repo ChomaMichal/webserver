@@ -24,9 +24,11 @@ public:
     this->error_message = other.error_message;
     return *this;
   }
-  Result(T &value) : value(value), correct(true), checked(false) {}
+  Result(T value) : value(value), correct(true), checked(false) {}
   Result(bool err, const std::string &error_message)
-      : correct(false), checked(false), error_message(error_message) {}
+      : correct(false), checked(false), error_message(error_message) {
+    // For error case, we need a default value
+  }
   T safe_unwrap(void) {
     if (checked == false)
       throw std::invalid_argument(

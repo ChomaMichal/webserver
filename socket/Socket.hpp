@@ -1,6 +1,7 @@
 #pragma once
 #include "../utils/Option.hpp"
 #include "../utils/Result.hpp"
+#include "Request.hpp"
 #include <iostream>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -13,7 +14,7 @@ public:
   int getFd(void) const;
   Socket();
   Socket(const Socket &other);
-  Result<Option<int>> accept();
+  Result<Option<Request>> accept();
   ~Socket();
   Socket &operator=(const Socket &other);
   static Result<Socket> connect(void);

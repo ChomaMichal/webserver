@@ -1,8 +1,11 @@
 #include "NetworkIO.hpp"
+#include <cstring>
 
-NetworkIO::_finish send;
+NetworkIO::_finish sendData;
 
 NetworkIO::NetworkIO() : fd(-1) {}
+
+NetworkIO::~NetworkIO() {}
 
 NetworkIO::NetworkIO(NetworkIO &other) { *this = other; }
 
@@ -20,13 +23,16 @@ NetworkIO &NetworkIO::operator<<(_finish &send) {
 NetworkIO &NetworkIO::operator>>(std::string &recieve) {
   char buff[1024];
   size_t rt = 0;
-  do {
+  std::memset(buff, 0, 1024);
+  while (true) {
     size_t rt = read(this->fd, buff, 1024);
     if (rt == -1) {
       std::cerr << "failed to read\n";
       return (*this); // errorhandle later
     }
+    if (rt == 0)
+      break;
     recieve.append(buff);
-  } while (rt != 0);
+  }
   return (*this);
 }
