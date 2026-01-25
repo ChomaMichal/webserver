@@ -2,7 +2,10 @@
 
 Requests::Requests(void) {};
 Requests::Requests(Requests &other) : fds(other.fds) {}
-Requests &Requests::operator=(Requests &other) { this->fds = other.fds; }
+Requests &Requests::operator=(Requests &other) {
+  this->fds = other.fds;
+  return *this;
+}
 Requests::~Requests() {}
 void Requests::add(int fd) {
   struct pollfd tmp;

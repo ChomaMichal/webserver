@@ -14,7 +14,7 @@ public:
   int getFd(void) const;
   Socket();
   Socket(const Socket &other);
-  Result<Option<Request>> accept();
+  Result<Option<int>> accept();
   ~Socket();
   Socket &operator=(const Socket &other);
   static Result<Socket> connect(void);

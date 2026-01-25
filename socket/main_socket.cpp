@@ -18,8 +18,9 @@ void server(void) {
     std::cerr << "[SERVER] Failed to bind socket\n";
     return;
   }
+
   Socket soc = maybe.safe_unwrap();
-  std::list<int> clients;
+  Requests clients;
   std::cout << "[SERVER] Waiting for connections...\n";
   while (true) {
     while (true) {
@@ -33,28 +34,13 @@ void server(void) {
       if (maybe_fd.check()) {
         int client_fd = maybe_fd.safe_unwrap();
         std::cout << "[SERVER] Client accepted with fd: " << client_fd << "\n";
-        clients.push_back(client_fd);
+        clients.add(client_fd);
       } else {
         break;
       }
     }
 
     // Read from client using NetworkIO
-    for (auto iter = clients.begin(); iter != clients.end();) {
-      std::string received_data;
-      NetworkIO io(*iter);
-      // std::cerr << clients[i] << " == fdnumber\n";
-      io >> received_data;
-
-      if (!received_data.empty()) {
-        std::cout << "[SERVER] Received from client: " << received_data << "\n";
-        iter++;
-        // exit(0);
-      } else {
-        close(*iter);
-        clients.erase(iter);
-      }
-    }
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 }

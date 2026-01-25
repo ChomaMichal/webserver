@@ -29,6 +29,7 @@ public:
       : correct(false), checked(false), error_message(error_message) {
     // For error case, we need a default value
   }
+
   T safe_unwrap(void) {
     if (checked == false)
       throw std::invalid_argument(
@@ -40,9 +41,6 @@ public:
       return value;
   }
   T unwrap(void) {
-    if (checked == true && correct == true)
-      return this->value;
-
     if (correct == false)
       throw std::runtime_error(error_message);
     else
