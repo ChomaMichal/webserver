@@ -85,7 +85,7 @@ public:
 
   // returns refference to value if has_value is none throws runtime_error
   // if DEBUG is defined will throw invalid invalid_argument  if not checked
-  T &operator->(void) {
+  T *operator->(void) {
 #ifdef DEBUG
     if (checked == false)
       throw std::invalid_argument(
@@ -96,5 +96,17 @@ public:
       return (value);
     else
       throw std::runtime_error("Derreferenced option that contained nothing");
+  }
+  // returs refference to object doen't check if object exists if object doesn't
+  // exist undefined behaviour
+  // if DEBUG is defined will throw invalid invalid_argument  if not checked
+  T &get_refference(void) {
+#ifdef DEBUG
+    if (checked == false)
+      throw std::invalid_argument(
+          "Tried to safe_unwrap without checking for none");
+
+#endif
+    return value;
   }
 };

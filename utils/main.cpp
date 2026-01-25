@@ -19,5 +19,6 @@ int main() {
     std::cerr << "failed to open" << std::endl;
     return 1;
   }
-  auto fd = maybe.unwrap();
+  int fd = *maybe;
+  std::cout << fd;
 }
