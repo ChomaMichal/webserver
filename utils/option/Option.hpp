@@ -21,6 +21,8 @@ public:
     this->checked = other.checked;
   }
 
+  // will throw a runtime_error if it doesn't have vaule
+  // if DEBUG is defined will throw invalid_argument if is not checked
   T unwrap(void) {
 #ifdef DEBUG
     if (checked == false)
@@ -33,17 +35,19 @@ public:
     else
       return value;
   }
-
+  // returns true is there is value
   bool is_some(void) {
     this->checked = true;
     return (this->has_value);
   }
 
+  // returns false is there is value
   bool is_none(void) {
     this->checked = true;
     return !(this->has_value);
   }
 
+  // returns the value
   T unwrap_or(T &other) {
     if (checked == true && has_value == true)
       return this->value;
@@ -63,4 +67,34 @@ public:
       return value;
   }
   ~Option() {}
+
+  // returns refference to value if has_value is none throws runtime_error
+  // if DEBUG is defined will throw invalid invalid_argument  if not checked
+  T &operator*(void) {
+#ifdef DEBUG
+    if (checked == false)
+      throw std::invalid_argument(
+          "Tried to safe_unwrap without checking for none");
+
+#endif
+    if (has_value == true)
+      return (value);
+    else
+      throw std::runtime_error("Derefferenced option that contained nothing");
+  }
+
+  // returns refference to value if has_value is none throws runtime_error
+  // if DEBUG is defined will throw invalid invalid_argument  if not checked
+  T &operator->(void) {
+#ifdef DEBUG
+    if (checked == false)
+      throw std::invalid_argument(
+          "Tried to safe_unwrap without checking for none");
+
+#endif
+    if (has_value == true)
+      return (value);
+    else
+      throw std::runtime_error("Derreferenced option that contained nothing");
+  }
 };
