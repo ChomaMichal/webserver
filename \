@@ -1,0 +1,17 @@
+#pragma once
+#include <cstddef>
+#include <string>
+// This contains part of the string and its length, It doesn;t realocate
+class StrSlice {
+public:
+  StrSlice();
+  ~StrSlice();
+  StrSlice(const StrSlice &other);
+  StrSlice &operator=(const StrSlice &other);
+  // pass the string beggining of the substring and len
+  StrSlice(const std::string &string, size_t beggining, size_t);
+
+private:
+  char *allocation;
+  size_t len;
+};
