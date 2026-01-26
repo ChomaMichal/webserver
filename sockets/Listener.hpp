@@ -4,7 +4,9 @@
 #include <cstring>
 #include <iostream>
 #include <netinet/in.h>
+#include <sys/poll.h>
 #include <sys/socket.h>
+#include <vector>
 
 class Listener {
 public:
@@ -17,6 +19,6 @@ public:
   ~Listener();
 
 private:
-  int fd;
-  int *amount;
+  struct pollfd &pl;
+  static struct pollfd pollarr[4096];
 };
