@@ -1,72 +1,66 @@
 #pragma once
-
 #include <stdexcept>
 #include <string>
-
 template <typename T>
 
-class Option {
+class Result {
 protected:
   T value;
-  bool has_value;
+  bool no_error;
   bool checked;
+  std::string error_code;
 
 public:
-  Option() : has_value(false), checked(false) {}
-  Option(T value) : value(value), has_value(true), checked(false) {}
-  Option(bool is_empty) : has_value(false), checked(false) {}
-  Option(Option &other) {
+  Result(const std::string &error_code)
+      : no_error(false), error_code(error_code), checked(false) {}
+  Result() : no_error(false), checked(false) {}
+  Result(T &value) : value(value), no_error(true), checked(false) {}
+  Result(const Result &other) { *this = other; }
+  Result &operator=(const Result &other) {
+    this->no_error = other.no_error;
     this->value = other.value;
-    this->has_value = other.has_value;
+    this->error_code = other.error_code;
     this->checked = other.checked;
+    return (*this);
   }
 
-  // will throw a runtime_error if it doesn't have vaule
-  // if DEBUG is defined will throw invalid_argument if is not checked
-  T unwrap(void) {
-#ifdef DEBUG
-    if (checked == false)
-      throw std::invalid_argument(
-          "Tried to safe_unwrap without checking for none");
-
-#endif
-    if (has_value == false)
-      throw std::runtime_error("Unwraped option that contained nothing");
-    else
-      return value;
-  }
-  // returns true is there is value
-  bool is_some(void) {
-    this->checked = true;
-    return (this->has_value);
+  // returns true is there is error
+  bool is_error(void) {
+    checked = true;
+    return !(no_error);
   }
 
-  // returns false is there is value
-  bool is_none(void) {
-    this->checked = true;
-    return !(this->has_value);
+  // returns true is there is no_error
+  bool is_corect(void) {
+    checked = true;
+    return (no_error);
+  }
+
+  std::string get_error(void) {
+    if (no_error == false)
+      return (error_code);
+    return (std::string());
   }
 
   // returns the value
   T unwrap_or(T &other) {
-    if (checked == true && has_value == true)
+    if (checked == true && no_error == true)
       return this->value;
 
-    if (has_value == false)
+    if (no_error == false)
       return (other);
     else
       return value;
   }
   T expect(const std::string &error_mesage) {
-    if (checked == true && has_value == true)
+    if (checked == true && no_error == true)
       return this->value;
 
-    if (has_value == false)
+    if (no_error == false)
       throw std::runtime_error(error_mesage);
     else
       return value;
   }
-  ~Option() {}
 
   // returns refference to value if has_value is none throws runtime_error
   // if DEBUG is defined will throw invalid invalid_argument  if not checked
@@ -77,12 +71,11 @@ public:
           "Tried to safe_unwrap without checking for none");
 
 #endif
-    if (has_value == true)
+    if (no_error == true)
       return (value);
     else
-      throw std::runtime_error("Derefferenced option that contained nothing");
+      throw std::runtime_error("Derefferenced result that contained nothing");
   }
-
   // returns refference to value if has_value is none throws runtime_error
   // if DEBUG is defined will throw invalid invalid_argument  if not checked
   T *operator->(void) {
@@ -92,10 +85,10 @@ public:
           "Tried to safe_unwrap without checking for none");
 
 #endif
-    if (has_value == true)
+    if (no_error == true)
       return (value);
     else
-      throw std::runtime_error("Derreferenced option that contained nothing");
+      throw std::runtime_error("Derreferenced error that contained nothing");
   }
   // returs refference to object doen't check if object exists if object doesn't
   // exist undefined behaviour
@@ -104,16 +97,20 @@ public:
 #ifdef DEBUG
     if (checked == false)
       throw std::invalid_argument(
-          "Tried to get_refference on option without checking for none");
+          "Tried to get_refference on refference without checking for none");
 
 #endif
     return value;
   }
+
+  // returs pointer to object doen't check if object exists if object doesn't
+  // exist undefined behaviour
+  // if DEBUG is defined will throw invalid invalid_argument  if not checked
   T *get_pointer(void) {
 #ifdef DEBUG
     if (checked == false)
       throw std::invalid_argument(
-          "Tried to get_pointer on option without checking for none");
+          "Tried to get_pointer on result without checking for none");
 
 #endif
     return &value;
