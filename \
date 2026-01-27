@@ -11,18 +11,13 @@ Stream::Stream(struct pollfd &pl) : pl(pl) {}
 Result<Option<Stream>> Stream::accept(Listener &lis) {
   short events = lis.getRevents();
   if (events == POLLERR || events == POLLHUP) {
-#ifdef DEBUG
-    perror("error on sockethas failed");
-#endif
     Result<Option<Stream>> rt("error on socket");
     return (rt);
   }
   if (events == POLLIN) {
     int fd = ::accept(lis.getFd(), NULL, NULL);
     if (fd == -1) {
-#ifdef DEBUG
       perror("accppt has failed");
-#endif
       Result<Option<Stream>> rt("error on accept");
       return rt;
     } else {

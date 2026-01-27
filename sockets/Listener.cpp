@@ -3,18 +3,33 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-Listener::Listener() {
+Listener::Listener() : pl(this->pollarr[0]) {
   std::cerr << "Fuck of don't use me like this" << std::endl;
 }
 
 Listener::Listener(const Listener &other) : pl(other.pl) {}
 
-Listener::Listener(int fd) {}
+Listener::Listener(int fd) : pl(this->pollarr[fd]) {
+  pl.fd = fd;
+  pl.events =
+      POLLIN; // need to spesify what to listen to check if this is correct
+}
 
 Listener::~Listener() {}
 
 int Listener::getFd(void) const { return (pl.fd); }
-const Listener &Listener::operator=(const Listener &other) {}
+const Listener &Listener::operator=(const Listener &other) {
+  this->pl = other.pl;
+  return *this;
+}
+
+void Listener::init(void) {
+  for (int i = 0; i < FD_MAX; i++) {
+    pollarr[i].fd = -1;
+    pollarr[i].events = 0;
+    pollarr[i].revents = 0;
+  }
+}
 
 static Result<Listener> connect(int port) {
   int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);

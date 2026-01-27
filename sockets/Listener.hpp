@@ -6,7 +6,10 @@
 #include <netinet/in.h>
 #include <sys/poll.h>
 #include <sys/socket.h>
-#include <vector>
+
+#ifndef FD_MAX
+#define FD_MAX 4096
+#endif
 
 class Listener {
 public:
@@ -15,10 +18,13 @@ public:
   Listener(int fd);
   const Listener &operator=(const Listener &other);
   static Result<Listener> connect(int port);
+  static void init(void);
   int getFd(void) const;
+  short getRevents(void);
   ~Listener();
+  struct pollfd *getPollarr(void);
 
 private:
   struct pollfd &pl;
-  static struct pollfd pollarr[4096];
+  static struct pollfd pollarr[FD_MAX];
 };
