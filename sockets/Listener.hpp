@@ -13,18 +13,28 @@
 
 class Listener {
 public:
-  Listener();
   Listener(const Listener &other);
-  Listener(int fd);
   const Listener &operator=(const Listener &other);
   static Result<Listener> connect(int port);
-  static void init(void);
+  // calls poll to check status of all fds managed by this library
+  static void update_fd_status(void);
+  // returns the fd of the socket that listens for requests
   int getFd(void) const;
-  short getRevents(void);
+  short getRevent(int fd);
+  // returns revents set by last call of poll
+  short getFdStatus(void);
   ~Listener();
   struct pollfd *getPollarr(void);
+  // never use outise of internal funcion
+  Listener(int fd);
+  Listener();
 
 private:
+  size_t *amount;
   struct pollfd &pl;
   static struct pollfd pollarr[FD_MAX];
+  static bool initialized;
+  // will initialize the pollfd arr to be usable
+  // does it on the firste initialize
+  static void init(void);
 };

@@ -9,7 +9,7 @@
 Stream::Stream(struct pollfd &pl) : pl(pl) {}
 
 Result<Option<Stream>> Stream::accept(Listener &lis) {
-  short events = lis.getRevents();
+  short events = lis.getFdStatus();
   if (events == POLLERR || events == POLLHUP) {
 #ifdef DEBUG
     perror("error on sockethas failed");
