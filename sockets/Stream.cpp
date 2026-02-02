@@ -1,12 +1,27 @@
 #include "Stream.hpp"
 #include "Listener.hpp"
+#include "Networking.hpp"
+#include <cstring>
 #include <errno.h>
+#include <new>
 #include <stdio.h>
 #include <sys/poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
+#ifdef NOALLOC
+Stream prealloc_stream[MAX_STREAMS];
+#endif
+
+Stream::Stream() : pl(pollarr[0]), request(new char[REQUEST_BODY_MAX]) {}
 Stream::Stream(struct pollfd &pl) : pl(pl) {}
+
+Stream::Stream(int fd) : pl(pollarr[fd]) {
+  Stream::request = new char[REQUEST_BODY_MAX];
+  pl.fd = fd;
+  pl.events = POLLIN | POLLOUT;
+  pl.revents = 0;
+}
 
 Result<Option<Stream>> Stream::accept(Listener &lis) {
   short events = lis.getFdStatus();
@@ -27,8 +42,14 @@ Result<Option<Stream>> Stream::accept(Listener &lis) {
       return rt;
     } else {
       lis.getPollarr()[fd].fd = fd;
+#ifdef NOALLOC
+      Stram
+#else
       Stream stream(lis.getPollarr()[fd]);
-      Option<Stream> some(stream);
+#endif
+
+          Option<Stream>
+              some(stream);
       Result<Option<Stream>> rt(some);
       return (rt);
     }
@@ -39,4 +60,3 @@ Result<Option<Stream>> Stream::accept(Listener &lis) {
 }
 
 int Stream::getFd(void) const { return (this->pl.fd); }
-Option<std::string> Stream::read() {}

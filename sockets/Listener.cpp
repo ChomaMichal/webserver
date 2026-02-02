@@ -1,14 +1,10 @@
 #include "Listener.hpp"
+#include "Networking.hpp"
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
-struct pollfd Listener::pollarr[FD_MAX];
-bool Listener::initialized;
-
-Listener::Listener() : pl(this->pollarr[0]) {
-  std::cerr << "Fuck of don't use me like this" << std::endl;
-}
+Listener::Listener() : pl(Networking::pollarr[0]) {}
 
 Listener::Listener(const Listener &other) : pl(other.pl), amount(other.amount) {
   (*amount)++;
@@ -24,6 +20,7 @@ Listener::Listener(int fd) : pl(this->pollarr[fd]) {
   pl.fd = fd;
   pl.events =
       POLLIN; // need to spesify what to listen to check if this is correct
+  pl.revents = 0;
 }
 
 Listener::~Listener() {
@@ -41,14 +38,6 @@ const Listener &Listener::operator=(const Listener &other) {
 }
 
 short Listener::getFdStatus(void) { return pl.revents; }
-
-void Listener::init(void) {
-  for (int i = 0; i < FD_MAX; i++) {
-    pollarr[i].fd = -1;
-    pollarr[i].events = 0;
-    pollarr[i].revents = 0;
-  }
-}
 
 Result<Listener> Listener::connect(int port) {
   int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
@@ -72,9 +61,4 @@ Result<Listener> Listener::connect(int port) {
   Listener lis(fd);
   Result<Listener> rt = Result<Listener>(lis);
   return rt;
-}
-
-void Listener::update_fd_status(void) {
-  poll(Listener::pollarr, 4096,
-       0); // test with -1 it blocks untill event happends
 }
