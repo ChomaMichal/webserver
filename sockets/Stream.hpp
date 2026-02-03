@@ -10,14 +10,6 @@
 #define REQUEST_BODY_MAX 1000000
 #endif
 
-#define NOALLOC
-
-#ifdef NOALLOC
-#ifndef MAX_STREAMS
-#define MAX_STREAMS 1000
-#endif
-#endif
-
 // idea behind this only way to construct this class is by the funcioon accept
 // that will be called by listener
 // this class will allocate on initialization, will never allocate during
@@ -31,12 +23,10 @@ public:
   Stream &operator=(const Stream &other);
   static Result<Option<Stream>> accept(Listener &lis);
   int getFd(void) const;
+  void setPl(const struct pollfd &fd);
   Stream();
 
 private:
-#ifdef NOALLOC
-  static Stream prealoc_stream[MAX_STREAMS];
-#endif
   char *request;
   StrSlice header;
   StrSlice body;

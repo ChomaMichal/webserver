@@ -1,10 +1,19 @@
 #pragma once
 #include <sys/poll.h>
 
+#define NOALLOC
+
+#ifdef NOALLOC
+#ifndef MAX_STREAMS
+#define MAX_STREAMS 1024
+#endif
+#endif
+
 #ifndef FD_MAX
 #define FD_MAX 4096
 #endif
 
+class Stream;
 // this the parent class;
 // this class stores fds that are used in this library;
 //  funcion init will initialize pollarr which is for checkoing availoibility of
@@ -19,6 +28,10 @@ protected:
   virtual ~Networking();
   Networking(const Networking &);
   virtual Networking &operator=(const Networking &);
+
+#ifdef NOALLOC
+  static Stream *prealoc_stream;
+#endif
 
 public:
   // reutrnsn the number of available fds

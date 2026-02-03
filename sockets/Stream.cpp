@@ -14,7 +14,12 @@ Stream prealloc_stream[MAX_STREAMS];
 #endif
 
 Stream::Stream() : pl(pollarr[0]), request(new char[REQUEST_BODY_MAX]) {}
-Stream::Stream(struct pollfd &pl) : pl(pl) {}
+Stream::Stream(struct pollfd &pl) : pl(pl) {
+#ifndef NOALLOC
+  request = new char[REQUEST_BODY_MAX];
+#endif
+}
+Stream::Stream(const Stream &other) : pl(other.pl), request(other.request) {}
 
 Stream::Stream(int fd) : pl(pollarr[fd]) {
   Stream::request = new char[REQUEST_BODY_MAX];
@@ -43,13 +48,13 @@ Result<Option<Stream>> Stream::accept(Listener &lis) {
     } else {
       lis.getPollarr()[fd].fd = fd;
 #ifdef NOALLOC
-      Stram
+      Stream &stream = Networking::prealoc_stream[fd];
+      stream.setPl(lis.getPollarr()[fd]);
 #else
       Stream stream(lis.getPollarr()[fd]);
 #endif
 
-          Option<Stream>
-              some(stream);
+      Option<Stream> some(stream);
       Result<Option<Stream>> rt(some);
       return (rt);
     }

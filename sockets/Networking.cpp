@@ -1,4 +1,5 @@
 #include "Networking.hpp"
+#include "Stream.hpp"
 
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -12,8 +13,17 @@ void Networking::init(void) {
     pollarr[i].events = 0;
     pollarr[i].revents = 0;
   }
+#ifdef NOALLOC
+  prealoc_stream = new Stream[1024];
+#endif
 }
 int Networking::update_fd_status(void) {
   return (
       poll(pollarr, 4096, 0)); // test with -1 it blocks untill event happends
+}
+
+Networking::~Networking() {
+#ifdef NOALLOC
+  delete[] prealoc_stream;
+#endif
 }
