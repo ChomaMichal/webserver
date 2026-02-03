@@ -23,9 +23,10 @@ public:
   // never use outise of internal funcion
   Listener(int fd);
   Listener();
+  Result<Option<Stream>> accept(void);
 
 private:
   size_t *amount;
-  struct pollfd &pl;
+  size_t pl_index;
   static void init(void);
 };

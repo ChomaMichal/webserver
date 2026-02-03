@@ -13,20 +13,58 @@
 Stream prealloc_stream[MAX_STREAMS];
 #endif
 
-Stream::Stream() : pl(pollarr[0]), request(new char[REQUEST_BODY_MAX]) {}
-Stream::Stream(struct pollfd &pl) : pl(pl) {
+Stream::Stream() : Networking(), pl_index(0), buffer(new char[REQUEST_BODY_MAX]) {}
+Stream::Stream(struct pollfd &fd_ref) : Networking(), pl_index(0) {
 #ifndef NOALLOC
-  request = new char[REQUEST_BODY_MAX];
+  buffer = new char[REQUEST_BODY_MAX];
+#endif
+  // Find index of this pollfd in pollarr
+  for (int i = 0; i < FD_MAX; i++) {
+    if (&pollarr[i] == &fd_ref) {
+      pl_index = i;
+      break;
+    }
+  }
+}
+Stream::Stream(const Stream &other) : Networking(), pl_index(other.pl_index), buffer(other.buffer) {}
+
+Stream::Stream(int fd) : Networking(), pl_index(fd) {
+  Stream::buffer = new char[REQUEST_BODY_MAX];
+  pollarr[pl_index].fd = fd;
+  pollarr[pl_index].events = POLLIN | POLLOUT;
+  pollarr[pl_index].revents = 0;
+}
+
+Stream::~Stream() {
+#ifndef NOALLOC
+  delete[] buffer;
 #endif
 }
-Stream::Stream(const Stream &other) : pl(other.pl), request(other.request) {}
 
-Stream::Stream(int fd) : pl(pollarr[fd]) {
-  Stream::request = new char[REQUEST_BODY_MAX];
-  pl.fd = fd;
-  pl.events = POLLIN | POLLOUT;
-  pl.revents = 0;
+Stream &Stream::operator=(const Stream &other) {
+  if (this != &other) {
+    buffer = other.buffer;
+    pl_index = other.pl_index;
+  }
+  return *this;
 }
+
+void Stream::printBuffer(void) const { std::cout << buffer; }
+
+Result<bool> Stream::read(void) {
+  if (pollarr[pl_index].revents == POLLIN) {
+    size_t rt = ::read(pollarr[pl_index].fd, buffer, REQUEST_BODY_MAX);
+    if (rt == -1) {
+      return (Result<bool>("Error on reading"));
+    }
+    buffer[rt] = 0;
+    bool hehe = true;
+    return (Result<bool>(hehe));
+  } else {
+    bool hehe = false;
+    return (Result<bool>(hehe));
+  }
+} // add errorhandeling for poll stuff
 
 Result<Option<Stream>> Stream::accept(Listener &lis) {
   short events = lis.getFdStatus();
@@ -64,4 +102,13 @@ Result<Option<Stream>> Stream::accept(Listener &lis) {
   return (none);
 }
 
-int Stream::getFd(void) const { return (this->pl.fd); }
+int Stream::getFd(void) const { return (pollarr[pl_index].fd); }
+
+void Stream::setPl(const struct pollfd &fd) {
+  for (int i = 0; i < FD_MAX; i++) {
+    if (&pollarr[i] == &fd) {
+      pl_index = i;
+      break;
+    }
+  }
+}

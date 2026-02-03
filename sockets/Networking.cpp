@@ -5,7 +5,19 @@
 #include <sys/socket.h>
 
 struct pollfd Networking::pollarr[FD_MAX];
-bool Networking::initialized;
+bool Networking::initialized = false;
+
+#ifdef NOALLOC
+Stream *Networking::prealoc_stream = nullptr;
+#endif
+
+Networking::Networking() {}
+
+Networking::Networking(const Networking &) {}
+
+Networking &Networking::operator=(const Networking &) {
+  return *this;
+}
 
 void Networking::init(void) {
   for (int i = 0; i < FD_MAX; i++) {
@@ -14,7 +26,9 @@ void Networking::init(void) {
     pollarr[i].revents = 0;
   }
 #ifdef NOALLOC
-  prealoc_stream = new Stream[1024];
+  if (!prealoc_stream) {
+    prealoc_stream = new Stream[1024];
+  }
 #endif
 }
 int Networking::update_fd_status(void) {
@@ -23,7 +37,6 @@ int Networking::update_fd_status(void) {
 }
 
 Networking::~Networking() {
-#ifdef NOALLOC
-  delete[] prealoc_stream;
-#endif
+  // Don't delete prealoc_stream here - it's a static resource
+  // Only delete when the program exits
 }
