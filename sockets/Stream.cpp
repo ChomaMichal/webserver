@@ -13,7 +13,10 @@
 Stream prealloc_stream[MAX_STREAMS];
 #endif
 
-Stream::Stream() : Networking(), pl_index(0), buffer(new char[REQUEST_BODY_MAX]) {}
+size_t Stream::fd_refcount[FD_MAX];
+
+Stream::Stream()
+    : Networking(), pl_index(0), buffer(new char[REQUEST_BODY_MAX]) {}
 Stream::Stream(struct pollfd &fd_ref) : Networking(), pl_index(0) {
 #ifndef NOALLOC
   buffer = new char[REQUEST_BODY_MAX];
@@ -25,17 +28,32 @@ Stream::Stream(struct pollfd &fd_ref) : Networking(), pl_index(0) {
       break;
     }
   }
+  if (pl_index >= 0 && pl_index < FD_MAX) {
+    fd_refcount[pl_index] = 1;
+  }
 }
-Stream::Stream(const Stream &other) : Networking(), pl_index(other.pl_index), buffer(other.buffer) {}
+Stream::Stream(const Stream &other)
+    : Networking(), pl_index(other.pl_index), buffer(other.buffer) {
+  if (pl_index >= 0 && pl_index < FD_MAX) {
+    fd_refcount[pl_index]++;
+  }
+}
 
 Stream::Stream(int fd) : Networking(), pl_index(fd) {
-  Stream::buffer = new char[REQUEST_BODY_MAX];
+  buffer = new char[REQUEST_BODY_MAX];
+  fd_refcount[fd] = 1;
   pollarr[pl_index].fd = fd;
   pollarr[pl_index].events = POLLIN | POLLOUT;
   pollarr[pl_index].revents = 0;
 }
 
 Stream::~Stream() {
+  if (pl_index >= 0 && pl_index < FD_MAX) {
+    fd_refcount[pl_index]--;
+    if (fd_refcount[pl_index] == 0) {
+      close(pl_index);
+    }
+  }
 #ifndef NOALLOC
   delete[] buffer;
 #endif
@@ -43,8 +61,17 @@ Stream::~Stream() {
 
 Stream &Stream::operator=(const Stream &other) {
   if (this != &other) {
+    if (pl_index >= 0 && pl_index < FD_MAX) {
+      fd_refcount[pl_index]--;
+      if (fd_refcount[pl_index] == 0) {
+        close(pl_index);
+      }
+    }
     buffer = other.buffer;
     pl_index = other.pl_index;
+    if (pl_index >= 0 && pl_index < FD_MAX) {
+      fd_refcount[pl_index]++;
+    }
   }
   return *this;
 }
@@ -52,7 +79,7 @@ Stream &Stream::operator=(const Stream &other) {
 void Stream::printBuffer(void) const { std::cout << buffer; }
 
 Result<bool> Stream::read(void) {
-  if (pollarr[pl_index].revents == POLLIN) {
+  if (pollarr[pl_index].revents & POLLIN) {
     size_t rt = ::read(pollarr[pl_index].fd, buffer, REQUEST_BODY_MAX);
     if (rt == -1) {
       return (Result<bool>("Error on reading"));
@@ -85,6 +112,8 @@ Result<Option<Stream>> Stream::accept(Listener &lis) {
       return rt;
     } else {
       lis.getPollarr()[fd].fd = fd;
+      lis.getPollarr()[fd].events = POLLIN | POLLOUT;
+      lis.getPollarr()[fd].revents = 0;
 #ifdef NOALLOC
       Stream &stream = Networking::prealoc_stream[fd];
       stream.setPl(lis.getPollarr()[fd]);

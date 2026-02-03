@@ -5,10 +5,14 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-Listener::Listener() : Networking(), pl_index(0), amount(nullptr) {}
+size_t Listener::fd_refcount[FD_MAX];
 
-Listener::Listener(const Listener &other) : Networking(), pl_index(other.pl_index), amount(other.amount) {
-  if (amount) (*amount)++;
+Listener::Listener() : Networking(), pl_index(0) {}
+
+Listener::Listener(const Listener &other) : Networking(), pl_index(other.pl_index) {
+  if (pl_index >= 0) {
+    fd_refcount[pl_index]++;
+  }
 }
 
 Listener::Listener(int fd) : Networking(), pl_index(fd) {
@@ -16,29 +20,35 @@ Listener::Listener(int fd) : Networking(), pl_index(fd) {
     init();
     initialized = true;
   }
-  amount = new size_t(1);
+  fd_refcount[fd] = 1;
   pollarr[pl_index].fd = fd;
-  pollarr[pl_index].events =
-      POLLIN; // need to spesify what to listen to check if this is correct
+  pollarr[pl_index].events = POLLIN;
   pollarr[pl_index].revents = 0;
 }
 
 Listener::~Listener() {
-  if (amount) {
-    (*amount)--;
-    if (*amount == 0) {
-      int fd = getFd();
-      if (fd >= 0) {
-        close(fd);
-      }
-      delete amount;
+  if (pl_index >= 0 && pl_index < FD_MAX) {
+    fd_refcount[pl_index]--;
+    if (fd_refcount[pl_index] == 0) {
+      close(pl_index);
     }
   }
 }
 
 int Listener::getFd(void) const { return (pollarr[pl_index].fd); }
 const Listener &Listener::operator=(const Listener &other) {
-  this->pl_index = other.pl_index;
+  if (this != &other) {
+    if (pl_index >= 0 && pl_index < FD_MAX) {
+      fd_refcount[pl_index]--;
+      if (fd_refcount[pl_index] == 0) {
+        close(pl_index);
+      }
+    }
+    this->pl_index = other.pl_index;
+    if (pl_index >= 0 && pl_index < FD_MAX) {
+      fd_refcount[pl_index]++;
+    }
+  }
   return *this;
 }
 
@@ -55,24 +65,28 @@ struct pollfd *Listener::getPollarr(void) {
 }
 
 Result<Listener> Listener::connect(int port) {
-  int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
+  int fd = socket(AF_INET, SOCK_STREAM, 0);
   if (fd == -1) {
     Result<Listener> rt("Failed to create socket");
     return (rt);
   }
+  
   struct sockaddr_in server_adress;
   std::memset(&server_adress, 0, sizeof(sockaddr_in));
   server_adress.sin_family = AF_INET;
   server_adress.sin_port = htons(port);
   server_adress.sin_addr.s_addr = INADDR_ANY;
   if (bind(fd, (struct sockaddr *)&server_adress, sizeof(sockaddr_in)) == -1) {
+    close(fd);
     Result<Listener> rt("Failed to bind socket");
     return (rt);
   }
   if (listen(fd, SOMAXCONN) == -1) {
+    close(fd);
     Result<Listener> rt("Failed to listen on socket");
     return (rt);
   }
+  
   Listener lis(fd);
   Result<Listener> rt = Result<Listener>(lis);
   return rt;

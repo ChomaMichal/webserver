@@ -15,9 +15,7 @@ Networking::Networking() {}
 
 Networking::Networking(const Networking &) {}
 
-Networking &Networking::operator=(const Networking &) {
-  return *this;
-}
+Networking &Networking::operator=(const Networking &) { return *this; }
 
 void Networking::init(void) {
   for (int i = 0; i < FD_MAX; i++) {
@@ -31,12 +29,6 @@ void Networking::init(void) {
   }
 #endif
 }
-int Networking::update_fd_status(void) {
-  return (
-      poll(pollarr, 4096, 0)); // test with -1 it blocks untill event happends
-}
+int Networking::update_fd_status(void) { return poll(pollarr, FD_MAX, 0); }
 
-Networking::~Networking() {
-  // Don't delete prealoc_stream here - it's a static resource
-  // Only delete when the program exits
-}
+Networking::~Networking() {}

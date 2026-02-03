@@ -6,21 +6,19 @@
 #include "Networking.hpp"
 #include <sys/poll.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #ifndef REQUEST_BODY_MAX
 #define REQUEST_BODY_MAX 1000000
 #endif
 
-// idea behind this only way to construct this class is by the funcioon accept
-// that will be called by listener
-// this class will allocate on initialization, will never allocate during
-// oprations
-
 class Stream : Networking {
+private:
+  static size_t fd_refcount[FD_MAX];
+  
 public:
   Stream(const Stream &other);
   ~Stream();
-  // returns true if something was read
   Result<bool> read(void);
   Stream &operator=(const Stream &other);
   static Result<Option<Stream>> accept(Listener &lis);
@@ -28,12 +26,12 @@ public:
   void setPl(const struct pollfd &fd);
   void printBuffer(void) const;
   Stream();
+  Stream(struct pollfd &fd);
+  Stream(int fd);
 
 private:
   char *buffer;
   StrSlice header;
   StrSlice body;
-  Stream(struct pollfd &fd);
-  Stream(int fd);
   size_t pl_index;
 };
