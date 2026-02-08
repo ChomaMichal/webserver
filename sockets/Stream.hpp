@@ -15,7 +15,7 @@
 class Stream : Networking {
 private:
   static size_t fd_refcount[FD_MAX];
-  
+
 public:
   Stream(const Stream &other);
   ~Stream();
@@ -24,14 +24,14 @@ public:
   static Result<Option<Stream>> accept(Listener &lis);
   int getFd(void) const;
   void setPl(const struct pollfd &fd);
+  short getFdStatus(void);
   void printBuffer(void) const;
   Stream();
   Stream(struct pollfd &fd);
   Stream(int fd);
 
 private:
-  char *buffer;
-  StrSlice header;
-  StrSlice body;
   size_t pl_index;
+  char *buffer;
+  struct pollfd &pl;
 };

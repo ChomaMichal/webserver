@@ -26,9 +26,14 @@ void Networking::init(void) {
 #ifdef NOALLOC
   if (!prealoc_stream) {
     prealoc_stream = new Stream[1024];
+    for (int i = 0; i < MAX_STREAMS; i++) {
+      prealoc_stream[i].setPl(pollarr[i]);
+    }
   }
 #endif
 }
 int Networking::update_fd_status(void) { return poll(pollarr, FD_MAX, 0); }
 
 Networking::~Networking() {}
+
+Stream *Networking::getPrealocStream(void) { return (prealoc_stream); }

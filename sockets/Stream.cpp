@@ -1,8 +1,9 @@
 #include "Stream.hpp"
 #include "Listener.hpp"
 #include "Networking.hpp"
+#include <cerrno>
 #include <cstring>
-#include <errno.h>
+#include <iostream>
 #include <new>
 #include <stdio.h>
 #include <sys/poll.h>
@@ -16,8 +17,12 @@ Stream prealloc_stream[MAX_STREAMS];
 size_t Stream::fd_refcount[FD_MAX];
 
 Stream::Stream()
-    : Networking(), pl_index(0), buffer(new char[REQUEST_BODY_MAX]) {}
-Stream::Stream(struct pollfd &fd_ref) : Networking(), pl_index(0) {
+    : Networking(), pl_index(0), buffer(new char[REQUEST_BODY_MAX]),
+      pl(Networking::pollarr[0]) {
+  Networking::pollarr[0].fd = -1;
+}
+Stream::Stream(struct pollfd &fd_ref)
+    : Networking(), pl_index(fd_ref.fd), pl(fd_ref) {
 #ifndef NOALLOC
   buffer = new char[REQUEST_BODY_MAX];
 #endif
@@ -33,13 +38,14 @@ Stream::Stream(struct pollfd &fd_ref) : Networking(), pl_index(0) {
   }
 }
 Stream::Stream(const Stream &other)
-    : Networking(), pl_index(other.pl_index), buffer(other.buffer) {
+    : Networking(), pl_index(other.pl_index), buffer(other.buffer),
+      pl(Networking::pollarr[pl_index]) {
   if (pl_index >= 0 && pl_index < FD_MAX) {
     fd_refcount[pl_index]++;
   }
 }
 
-Stream::Stream(int fd) : Networking(), pl_index(fd) {
+Stream::Stream(int fd) : Networking(), pl_index(fd), pl(pollarr[pl_index]) {
   buffer = new char[REQUEST_BODY_MAX];
   fd_refcount[fd] = 1;
   pollarr[pl_index].fd = fd;
@@ -76,14 +82,21 @@ Stream &Stream::operator=(const Stream &other) {
   return *this;
 }
 
-void Stream::printBuffer(void) const { std::cout << buffer; }
+short Stream::getFdStatus(void) {
+  return (Networking::pollarr[pl_index].revents);
+}
+void Stream::printBuffer(void) const { std::cout << buffer << std::endl; }
 
 Result<bool> Stream::read(void) {
-  if (pollarr[pl_index].revents & POLLIN) {
-    size_t rt = ::read(pollarr[pl_index].fd, buffer, REQUEST_BODY_MAX);
+  if (pollarr[pl_index].revents & (POLLIN | POLLHUP)) {
+    int fd_to_read = pollarr[pl_index].fd;
+    std::cout << "Attempting to read from fd=" << fd_to_read << " (pl_index=" << pl_index << ")" << std::endl;
+    size_t rt = ::read(fd_to_read, buffer, REQUEST_BODY_MAX);
     if (rt == -1) {
+      std::cerr << "Read error: " << strerror(errno) << std::endl;
       return (Result<bool>("Error on reading"));
     }
+    std::cout << "Read " << rt << " bytes" << std::endl;
     buffer[rt] = 0;
     bool hehe = true;
     return (Result<bool>(hehe));
@@ -95,14 +108,15 @@ Result<bool> Stream::read(void) {
 
 Result<Option<Stream>> Stream::accept(Listener &lis) {
   short events = lis.getFdStatus();
-  if (events == POLLERR || events == POLLHUP) {
+  std::cout << "DEBUG Stream::accept: events=" << events << " (POLLIN=" << POLLIN << ", POLLHUP=" << POLLHUP << ")" << std::endl;
+  if (events & (POLLERR | POLLHUP)) {
 #ifdef DEBUG
     perror("error on sockethas failed");
 #endif
     Result<Option<Stream>> rt("error on socket");
     return (rt);
   }
-  if (events == POLLIN) {
+  if (events & POLLIN) {
     int fd = ::accept(lis.getFd(), NULL, NULL);
     if (fd == -1) {
 #ifdef DEBUG
@@ -117,6 +131,10 @@ Result<Option<Stream>> Stream::accept(Listener &lis) {
 #ifdef NOALLOC
       Stream &stream = Networking::prealoc_stream[fd];
       stream.setPl(lis.getPollarr()[fd]);
+      // Increment refcount to keep the fd from being closed
+      if (fd >= 0 && fd < FD_MAX) {
+        fd_refcount[fd]++;
+      }
 #else
       Stream stream(lis.getPollarr()[fd]);
 #endif
