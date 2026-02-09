@@ -1,4 +1,5 @@
 #pragma once
+#include "../utils/stack/Stack.hpp"
 #include <sys/poll.h>
 
 #define NOALLOC
@@ -33,6 +34,7 @@ protected:
 
 #ifdef NOALLOC
   static Stream *prealoc_stream;
+  static Stack<int> free_use;
 #endif
 
 public:

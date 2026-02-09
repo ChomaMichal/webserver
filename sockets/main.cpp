@@ -85,18 +85,10 @@ int main() {
   }
 
   sleep(1);
-  std::cout << "Parent: Entering accept loop, lis_fd=" << lis_fd << std::endl;
-  
   while (1) {
-    int poll_result = Networking::update_fd_status();
-    if (poll_result == -1) {
-      std::cout << "DEBUG: poll ERROR: " << strerror(errno) << std::endl;
-    } else {
-      std::cout << "DEBUG: poll returned " << poll_result << std::endl;
-    }
+    Networking::update_fd_status();
     usleep(100000); // 100ms to prevent CPU spinning
     auto res = (*lis).accept();
-    std::cout << "DEBUG: accept() returned, checking for client..." << std::endl;
     if (res.is_error()) {
       std::cerr << res.get_error();
       return (1);

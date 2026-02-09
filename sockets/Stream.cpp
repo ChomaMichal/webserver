@@ -90,7 +90,8 @@ void Stream::printBuffer(void) const { std::cout << buffer << std::endl; }
 Result<bool> Stream::read(void) {
   if (pollarr[pl_index].revents & (POLLIN | POLLHUP)) {
     int fd_to_read = pollarr[pl_index].fd;
-    std::cout << "Attempting to read from fd=" << fd_to_read << " (pl_index=" << pl_index << ")" << std::endl;
+    std::cout << "Attempting to read from fd=" << fd_to_read
+              << " (pl_index=" << pl_index << ")" << std::endl;
     size_t rt = ::read(fd_to_read, buffer, REQUEST_BODY_MAX);
     if (rt == -1) {
       std::cerr << "Read error: " << strerror(errno) << std::endl;
@@ -100,6 +101,9 @@ Result<bool> Stream::read(void) {
     buffer[rt] = 0;
     bool hehe = true;
     return (Result<bool>(hehe));
+  } else if (pollarr[pl_index].revents & (POLLERR | POLLHUP)) {
+    std::cerr << "Read error: " << strerror(errno) << std::endl;
+    return (Result<bool>("Error on poll"));
   } else {
     bool hehe = false;
     return (Result<bool>(hehe));
@@ -108,7 +112,6 @@ Result<bool> Stream::read(void) {
 
 Result<Option<Stream>> Stream::accept(Listener &lis) {
   short events = lis.getFdStatus();
-  std::cout << "DEBUG Stream::accept: events=" << events << " (POLLIN=" << POLLIN << ", POLLHUP=" << POLLHUP << ")" << std::endl;
   if (events & (POLLERR | POLLHUP)) {
 #ifdef DEBUG
     perror("error on sockethas failed");
