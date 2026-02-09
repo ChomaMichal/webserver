@@ -1,5 +1,6 @@
 #pragma once
 #include <cstddef>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 // This contains part of the string and its length, It doesn;t realocate
@@ -17,10 +18,21 @@ public:
   StrSlice(char *string, size_t);
   // access pos bit, if out of bounds throws exception
   char &operator[](size_t pos);
+
+  // access pos bit, if out of bounds throws exception
+  const char &operator[](size_t pos) const;
+
   // access pos bit, if out of bounds undefined behaviour
   char &at(size_t pos);
+
+  // access pos bit, if out of bounds undefined behaviour
+  const char &at(size_t pos) const;
+
+  size_t getLen(void) const;
 
 private:
   char *allocation;
   size_t len;
 };
+
+std::ostream &operator<<(std::ostream &os, const StrSlice &str);
