@@ -77,14 +77,15 @@ int main() {
 
   int lis_fd = (*lis).getFd();
   std::cout << "Listener on port " << PORT << ", fd = " << lis_fd << std::endl;
-
-  pid_t pid = fork();
-
-  if (pid == 0) {
-    sendOnPort();
-  }
-
+  //
+  // pid_t pid = fork();
+  //
+  // if (pid == 0) {
+  //   sendOnPort();
+  // }
+  //
   sleep(1);
+  Stream stream;
   while (1) {
     Networking::update_fd_status();
     usleep(100000); // 100ms to prevent CPU spinning
@@ -94,29 +95,20 @@ int main() {
       return (1);
     } else if ((*res).is_some()) {
       std::cout << "got a client" << std::endl;
+      stream = (*res).unwrap();
     }
-    for (int i = 0; i < MAX_STREAMS; i++) {
-      Stream &stream = Networking::getPrealocStream()[i];
-      if (stream.getFd() == -1 || stream.getFd() == (*lis).getFd()) {
-        continue;
+    // std::cout << "Reading from fd=" << stream.getFd()
+    // << " (status=" << stream.getFdStatus() << ")" << std::endl;
+    if (stream.getFdStatus() & (POLLIN | POLLHUP)) {
+      auto hehe = stream.read();
+      if (!hehe.is_error()) {
+        stream.printBuffer();
+        std::cout << std::endl;
       }
-      short status = stream.getFdStatus();
-      // Read any pending data before closing
-      if (status & (POLLIN | POLLHUP)) {
-        std::cout << "Reading from fd=" << stream.getFd()
-                  << " (status=" << status << ")" << std::endl;
-        auto hehe = stream.read();
-        if (!hehe.is_error()) {
-          stream.printBuffer();
-          std::cout << std::endl;
-        }
-      }
-      // Close after hangup
-      if (status & POLLHUP) {
-        std::cout << "Client disconnected: fd=" << stream.getFd() << std::endl;
-        close(stream.getFd());
-        continue;
-      }
+    }
+    if (stream.getFdStatus() & POLLHUP) {
+      std::cout << "Client disconnected: fd=" << stream.getFd() << std::endl;
+      stream.close();
     }
   }
 
