@@ -24,6 +24,7 @@ public:
   short getFdStatus(void);
   void printBuffer(void) const;
   void close(void);
+  char *getBuffer(void);
 
   Stream();
 

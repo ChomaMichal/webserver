@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include <arpa/inet.h>
+#include <fstream>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -102,8 +103,12 @@ int main() {
     if (stream.getFdStatus() & (POLLIN | POLLHUP)) {
       auto hehe = stream.read();
       if (!hehe.is_error()) {
+        std::fstream file;
         stream.printBuffer();
         std::cout << std::endl;
+        file.open("httprequest.txt", std::ios::out);
+        file << stream.getBuffer();
+        file.close();
       }
     }
     if (stream.getFdStatus() & POLLHUP) {

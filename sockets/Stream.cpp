@@ -62,6 +62,8 @@ Result<bool> Stream::read(void) {
   }
 } // add errorhandeling for poll stuff
 
+char *Stream::getBuffer() { return (buffer); }
+
 Result<Option<Stream>> Stream::accept(Listener &lis) {
 
   if (Networking::free_use.isFull() == true) {
