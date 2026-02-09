@@ -14,6 +14,8 @@
 Stream prealloc_stream[MAX_STREAMS];
 #endif
 
+Stream::~Stream() {}
+
 Stream::Stream()
     : Networking(), pl_index(0), buffer(new char[REQUEST_BODY_MAX]),
       pl(Networking::pollarr[0]) {
@@ -23,8 +25,6 @@ Stream::Stream()
 Stream::Stream(const Stream &other)
     : Networking(), pl_index(other.pl_index), buffer(other.buffer),
       pl(Networking::pollarr[pl_index]) {}
-
-Stream::~Stream() {}
 
 Stream &Stream::operator=(const Stream &other) {
   this->pl = other.pl;
@@ -116,6 +116,8 @@ void Stream::close(void) {
 }
 
 int Stream::getFd(void) const { return (pollarr[pl_index].fd); }
+
+char *Stream::getBuffer(void) { return (buffer); }
 
 void Stream::setPl(const struct pollfd &fd) {
   for (int i = 0; i < FD_MAX; i++) {

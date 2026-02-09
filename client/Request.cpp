@@ -1,9 +1,9 @@
 #include "Request.hpp"
 #include <cctype>
 #include <cstring>
+#include <iostream>
 #include <string.h>
 #include <strings.h>
-#include <iostream>
 Request::Request() : _method(NOT_SET), _len(-1), _connection(NONE) {}
 Request::~Request() {}
 
@@ -20,7 +20,7 @@ StrSlice Request::getRequestURI(void) const { return _requestURI; }
 
 StrSlice Request::getHTTPVersion(void) const { return _httpVersion; }
 
-size_t Request::getLen(void) const { return _len; }
+ssize_t Request::getLen(void) const { return _len; }
 
 StrSlice Request::getHost(void) const { return _host; }
 
@@ -51,7 +51,7 @@ void Request::setContentType(StrSlice contentType) {
 
 void Request::setBody(StrSlice body) { _body = body; }
 
-static Option<e_method> parseMethod(char *buffer) {
+static Option<e_method> parseMethod(char *&buffer) {
   if (std::strncmp("GET ", buffer, 4) == 0) {
     buffer += 4;
     return (Option<e_method>(GET));
@@ -70,38 +70,39 @@ static Option<e_method> parseMethod(char *buffer) {
   return (Option<e_method>(true));
 }
 
-static Option<StrSlice> parseURI(char *buffer) {
+static Option<StrSlice> parseURI(char *&buffer) {
   for (size_t i = 0; std::strncmp(buffer, "\r\n", 2); i++) {
     if (buffer[i] == ' ') {
-      StrSlice rt(buffer, i - 1);
-      buffer += i;
+      StrSlice rt(buffer, i);
+      buffer += i + 1;
       return (Option<StrSlice>(rt));
     }
   }
   return (Option<StrSlice>(false));
 }
 
-static Option<StrSlice> parseHttpVersion(char *buffer) {
+static Option<StrSlice> parseHttpVersion(char *&buffer) {
   if (std::strncmp("HTTP/", buffer, 5) != 0) {
     return (Option<StrSlice>(false));
   }
-  if (!std::isdigit(buffer[6])) {
+  if (!std::isdigit(buffer[5])) {
     return (Option<StrSlice>(false));
   }
-  if (buffer[7] == '.') {
+  if (buffer[6] != '.') {
     return (Option<StrSlice>(false));
   }
-  if (!std::isdigit(buffer[8])) {
+  if (!std::isdigit(buffer[7])) {
     return (Option<StrSlice>(false));
   }
-  if (std::strncmp(buffer + 9, "\r\n", 2) != 0) {
+  if (std::strncmp(buffer + 8, "\r\n", 2) != 0) {
     return (Option<StrSlice>(false));
   }
   StrSlice rt(buffer, 8);
+  buffer += 10; // Skip "HTTP/X.X\r\n"
   return (Option<StrSlice>(rt));
 }
 
-static Option<ssize_t> parseLen(char *buffer) {
+static Option<ssize_t> parseLen(char *&buffer) {
   char *ptr = strcasestr(buffer, "\r\nContent-Length:");
   if (ptr == NULL) {
     return (Option<ssize_t>(false));
@@ -117,42 +118,49 @@ static Option<ssize_t> parseLen(char *buffer) {
   return (Option<ssize_t>((ssize_t)len));
 }
 
-static Option<StrSlice> parseHost(char *buffer) {
-  char *ptr = strcasestr(buffer, "\r\nContent-Length:");
+static Option<StrSlice> parseHost(char *&buffer) {
+  char *ptr = strcasestr(buffer, "\r\nHost:");
   if (ptr == NULL) {
     return (Option<StrSlice>(false));
   };
-  for (; *ptr == ' ' || *ptr == '\t'; ptr++)
+  char *lbuffer = ptr + 8; // Skip "\r\nHost:"
+  for (; *lbuffer == ' ' || *lbuffer == '\t'; lbuffer++)
     ;
-  StrSlice rt(ptr, strcasestr(ptr, "\r\n") - ptr);
+  char *end = strcasestr(lbuffer, "\r\n");
+  if (end == NULL) {
+    return (Option<StrSlice>(false));
+  }
+  StrSlice rt(lbuffer, end - lbuffer);
   return (Option<StrSlice>(rt));
 }
 
-static Option<e_connection> parseConnection(char *buffer) {
-  char *ptr = strcasestr(buffer, "\r\n:Connection");
+static Option<e_connection> parseConnection(char *&buffer) {
+  char *ptr = strcasestr(buffer, "\r\nConnection:");
   if (ptr == NULL) {
     return (Option<e_connection>(false));
   };
-  for (; *ptr == ' ' || *ptr == '\t'; ptr++)
+  char *lbuffer = ptr + 13; // Skip "\r\nConnection:"
+  for (; *lbuffer == ' ' || *lbuffer == '\t'; lbuffer++)
     ;
-  if (strncasecmp(ptr, "close\r\n", 7) == 0) {
+  if (strncasecmp(lbuffer, "close", 5) == 0) {
     return (Option<e_connection>(CLOSE));
   }
-  if (strncasecmp(ptr, "keep-alive\r\n", 12) == 0) {
+  if (strncasecmp(lbuffer, "keep-alive", 10) == 0) {
     return (Option<e_connection>(KEEP_ALIVE));
   }
   return (Option<e_connection>(NONE));
 }
 
-static Option<StrSlice> parseContentType(char *buffer) {
+static Option<StrSlice> parseContentType(char *&buffer) {
   char *ptr = strcasestr(buffer, "\r\nContent-Type:");
   if (ptr == NULL) {
     return (Option<StrSlice>(false));
   };
+  ptr += 15; // Skip "\r\nContent-Type:"
   for (; *ptr == ' ' || *ptr == '\t'; ptr++)
     ;
   StrSlice rt(ptr, std::strstr(ptr, "\r\n") - ptr);
-  return (rt);
+  return (Option<StrSlice>(rt));
 }
 
 Option<Request> Request::parse(char *buffer) {
@@ -173,7 +181,7 @@ Option<Request> Request::parse(char *buffer) {
     auto maybe = parseHttpVersion(buffer);
     if (maybe.is_none())
       return (Option<Request>(true));
-    req.setRequestURI(maybe.unwrap());
+    req.setHTTPVersion(maybe.unwrap());
   }
   int there_is_header = 0;
   {
@@ -214,7 +222,8 @@ Option<Request> Request::parse(char *buffer) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Request &req) {
-  static const char *methodStrings[] = {"NOT_SET", "ERROR", "GET", "POST", "DELETE"};
+  static const char *methodStrings[] = {"NOT_SET", "ERROR", "GET", "POST",
+                                        "DELETE"};
   static const char *connectionStrings[] = {"NONE", "CLOSE", "KEEP_ALIVE"};
 
   os << "Request {\n";

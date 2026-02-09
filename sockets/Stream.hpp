@@ -23,6 +23,7 @@ public:
   void setPl(const struct pollfd &fd);
   short getFdStatus(void);
   void printBuffer(void) const;
+  char *getBuffer(void);
   void close(void);
 
   Stream();

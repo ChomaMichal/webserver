@@ -1,6 +1,6 @@
 #pragma once
 #include "../utils/option/Option.hpp"
-#include "../utils/str_slice/StrSlice.cpp"
+#include "../utils/str_slice/StrSlice.hpp"
 #include <cstddef>
 #include <iostream>
 
@@ -19,7 +19,7 @@ public:
   e_method getMethod(void) const;
   StrSlice getRequestURI(void) const;
   StrSlice getHTTPVersion(void) const;
-  size_t getLen(void) const;
+  ssize_t getLen(void) const;
   StrSlice getHost(void) const;
   e_connection getConnection(void) const;
   StrSlice getContentType(void) const;

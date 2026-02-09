@@ -1,3 +1,4 @@
+#include "../client/Request.cpp"
 #include "Listener.hpp"
 #include "Networking.hpp"
 #include "Stream.hpp"
@@ -102,8 +103,11 @@ int main() {
     if (stream.getFdStatus() & (POLLIN | POLLHUP)) {
       auto hehe = stream.read();
       if (!hehe.is_error()) {
-        stream.printBuffer();
-        std::cout << std::endl;
+        auto req = Request::parse(stream.getBuffer());
+        if (req.is_none()) {
+          continue;
+        }
+        std::cout << (*req) << std::endl;
       }
     }
     if (stream.getFdStatus() & POLLHUP) {
