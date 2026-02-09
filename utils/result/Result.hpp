@@ -52,6 +52,21 @@ public:
     else
       return value;
   }
+  // returns the value
+  T unwrap() {
+
+#ifdef DEBUG
+    if (checked == false)
+      throw std::invalid_argument(
+          "Tried to safe_unwrap without checking for none");
+
+#endif
+    if (no_error == true)
+      return this->value;
+    else
+      throw std::runtime_error("idk"); // change later
+  }
+
   T expect(const std::string &error_mesage) {
     if (checked == true && no_error == true)
       return this->value;

@@ -1,17 +1,20 @@
 #pragma once
+#include "../utils/stack/Stack.hpp"
 #include <sys/poll.h>
 
 #define NOALLOC
 
+#ifndef FD_MAX
+#define FD_MAX 50
+#endif
+
 #ifdef NOALLOC
 #ifndef MAX_STREAMS
-#define MAX_STREAMS 1024
+#define MAX_STREAMS FD_MAX
 #endif
 #endif
 
-#ifndef FD_MAX
-#define FD_MAX 4096
-#endif
+#define DEBUG
 
 class Stream;
 // this the parent class;
@@ -31,6 +34,7 @@ protected:
 
 #ifdef NOALLOC
   static Stream *prealoc_stream;
+  static Stack<int> free_use;
 #endif
 
 public:
@@ -38,4 +42,8 @@ public:
   static int update_fd_status(void);
   // will initialize the pollfd arr to be usable
   static void init(void);
+#ifdef NOALLOC
+  static Stream *getPrealocStream(void);
+#endif
+public:
 };
