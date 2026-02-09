@@ -25,7 +25,7 @@ public:
     if (this != &obj) {
       delete[] this->alloc;
       obj.ref++;
-      this->ref = obj;
+      this->ref = obj.ref;
       this->alloc = new T[obj.size];
       this->size = obj.size;
       this->top = obj.top;
@@ -35,14 +35,6 @@ public:
       return (*this);
     }
     return (*this);
-  }
-
-  void push(const T &val) {
-    top++;
-#ifdef DEBUG
-    assectstatic_assert(top >= size, "pushing outside of boudaries of stack");
-#endif
-    alloc[top] = val;
   }
 
   void push(const T val) {
@@ -66,5 +58,11 @@ public:
 #endif
     top--;
     return (alloc[top + 1]);
+  }
+  bool isFull(void) {
+    if (size == top) {
+      return (true);
+    }
+    return (false);
   }
 };
