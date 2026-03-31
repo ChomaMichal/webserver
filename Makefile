@@ -24,7 +24,7 @@ CLIENT_SRCS = $(CLIENT_DIR)/main_request.cpp $(CLIENT_DIR)/Request.cpp $(STR_SLI
 REQUEST_SRCS = $(CLIENT_DIR)/main_request.cpp $(CLIENT_DIR)/Request.cpp $(STR_SLICE_SRC)
 
 # PHONY targets
-.PHONY: all clean utils sockets client test_utils test_sockets test_client test_request request help
+.PHONY: all clean clean_all utils sockets client test_utils test_sockets test_client test_request request help
 
 # Default target
 all: utils sockets client
@@ -49,7 +49,7 @@ $(BUILD_DIR):
 
 utils: $(BUILD_DIR) $(UTILS_BIN)
 
-$(UTILS_BIN): $(UTILS_SRCS) $(UTILS_DIR)/option/Option.hpp
+$(UTILS_BIN): $(UTILS_SRCS) $(UTILS_DIR)/option/Option.hpp | $(BUILD_DIR)
 	@echo "Building utils module..."
 	$(CXX) $(CXXFLAGS) -o $@ $(UTILS_SRCS) $(LDFLAGS)
 	@echo "✓ Utils module built"
@@ -62,7 +62,7 @@ test_utils: $(UTILS_BIN)
 # Sockets module
 sockets: $(BUILD_DIR) $(SOCKETS_BIN)
 
-$(SOCKETS_BIN): $(SOCKETS_MAIN) $(SOCKETS_SRCS) $(SOCKETS_DIR)/*.hpp $(CLIENT_DIR)/Request.cpp $(CLIENT_DIR)/Request.hpp $(STR_SLICE_SRC)
+$(SOCKETS_BIN): $(SOCKETS_MAIN) $(SOCKETS_SRCS) $(SOCKETS_DIR)/*.hpp $(CLIENT_DIR)/Request.cpp $(CLIENT_DIR)/Request.hpp $(STR_SLICE_SRC) | $(BUILD_DIR)
 	@echo "Building sockets module..."
 	$(CXX) $(CXXFLAGS) -o $@ $(SOCKETS_MAIN) $(SOCKETS_SRCS) $(STR_SLICE_SRC) $(LDFLAGS)
 	@echo "✓ Sockets module built"
@@ -75,7 +75,7 @@ test_sockets: $(SOCKETS_BIN)
 # Client module
 client: $(BUILD_DIR) $(CLIENT_BIN)
 
-$(CLIENT_BIN): $(CLIENT_SRCS) $(CLIENT_DIR)/Request.hpp
+$(CLIENT_BIN): $(CLIENT_SRCS) $(CLIENT_DIR)/Request.hpp | $(BUILD_DIR)
 	@echo "Building client module..."
 	$(CXX) $(CXXFLAGS) -o $@ $(CLIENT_SRCS) $(LDFLAGS)
 	@echo "✓ Client module built"
@@ -88,7 +88,7 @@ test_client: $(CLIENT_BIN)
 # Request parser test
 request: $(BUILD_DIR) $(CLIENT_REQUEST_BIN)
 
-$(CLIENT_REQUEST_BIN): $(REQUEST_SRCS) $(CLIENT_DIR)/Request.hpp
+$(CLIENT_REQUEST_BIN): $(REQUEST_SRCS) $(CLIENT_DIR)/Request.hpp | $(BUILD_DIR)
 	@echo "Building request parser test..."
 	$(CXX) $(CXXFLAGS) -o $@ $(REQUEST_SRCS) $(LDFLAGS)
 	@echo "✓ Request parser test built"
