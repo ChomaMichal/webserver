@@ -60,7 +60,7 @@ Result<bool> Stream::read(void) {
     bool hehe = false;
     return (Result<bool>(hehe));
   }
-} // add errorhandeling for poll stuff
+}
 
 Result<Option<Stream>> Stream::accept(Listener &lis) {
 
@@ -70,6 +70,12 @@ Result<Option<Stream>> Stream::accept(Listener &lis) {
   }
 
   short events = lis.getFdStatus();
+
+  if (events == 0) {
+    Option<Stream> none(false);
+    Result<Option<Stream>> rt(none);
+    return (none);
+  }
 
   if (events & (POLLERR | POLLHUP)) {
 #ifdef DEBUG
