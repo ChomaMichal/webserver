@@ -15,6 +15,14 @@ SOCKETS_BIN = $(BUILD_DIR)/test_sockets
 CLIENT_BIN = $(BUILD_DIR)/test_client
 CLIENT_REQUEST_BIN = $(BUILD_DIR)/test_request
 
+# Source files
+UTILS_SRCS = $(UTILS_DIR)/main.cpp
+SOCKETS_MAIN = $(SOCKETS_DIR)/main.cpp
+SOCKETS_SRCS = $(SOCKETS_DIR)/Listener.cpp $(SOCKETS_DIR)/Networking.cpp $(SOCKETS_DIR)/Stream.cpp
+STR_SLICE_SRC = $(UTILS_DIR)/str_slice/StrSlice.cpp
+CLIENT_SRCS = $(CLIENT_DIR)/main_request.cpp $(CLIENT_DIR)/Request.cpp $(STR_SLICE_SRC)
+REQUEST_SRCS = $(CLIENT_DIR)/main_request.cpp $(CLIENT_DIR)/Request.cpp $(STR_SLICE_SRC)
+
 # PHONY targets
 .PHONY: all clean utils sockets client test_utils test_sockets test_client test_request request help
 
@@ -41,9 +49,9 @@ $(BUILD_DIR):
 
 utils: $(BUILD_DIR) $(UTILS_BIN)
 
-$(UTILS_BIN): $(UTILS_DIR)/main.cpp $(UTILS_DIR)/option/Option.hpp
+$(UTILS_BIN): $(UTILS_SRCS) $(UTILS_DIR)/option/Option.hpp
 	@echo "Building utils module..."
-	$(CXX) $(CXXFLAGS) -o $@ $(UTILS_DIR)/main.cpp $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -o $@ $(UTILS_SRCS) $(LDFLAGS)
 	@echo "✓ Utils module built"
 
 test_utils: $(UTILS_BIN)
@@ -54,9 +62,9 @@ test_utils: $(UTILS_BIN)
 # Sockets module
 sockets: $(BUILD_DIR) $(SOCKETS_BIN)
 
-$(SOCKETS_BIN): $(SOCKETS_DIR)/main.cpp $(SOCKETS_DIR)/*.cpp $(SOCKETS_DIR)/*.hpp $(CLIENT_DIR)/*.cpp $(CLIENT_DIR)/*.hpp
+$(SOCKETS_BIN): $(SOCKETS_MAIN) $(SOCKETS_SRCS) $(SOCKETS_DIR)/*.hpp $(CLIENT_DIR)/Request.cpp $(CLIENT_DIR)/Request.hpp $(STR_SLICE_SRC)
 	@echo "Building sockets module..."
-	$(CXX) $(CXXFLAGS) -o $@ $(SOCKETS_DIR)/main.cpp $(SOCKETS_DIR)/*.cpp $(CLIENT_DIR)/*.cpp $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -o $@ $(SOCKETS_MAIN) $(SOCKETS_SRCS) $(STR_SLICE_SRC) $(LDFLAGS)
 	@echo "✓ Sockets module built"
 
 test_sockets: $(SOCKETS_BIN)
@@ -67,11 +75,9 @@ test_sockets: $(SOCKETS_BIN)
 # Client module
 client: $(BUILD_DIR) $(CLIENT_BIN)
 
-$(CLIENT_BIN): $(CLIENT_DIR)/Client.cpp $(CLIENT_DIR)/Request.cpp
+$(CLIENT_BIN): $(CLIENT_SRCS) $(CLIENT_DIR)/Request.hpp
 	@echo "Building client module..."
-	$(CXX) $(CXXFLAGS) -c -o $(BUILD_DIR)/Client.o $(CLIENT_DIR)/Client.cpp
-	$(CXX) $(CXXFLAGS) -c -o $(BUILD_DIR)/Request.o $(CLIENT_DIR)/Request.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $(BUILD_DIR)/Client.o $(BUILD_DIR)/Request.o $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -o $@ $(CLIENT_SRCS) $(LDFLAGS)
 	@echo "✓ Client module built"
 
 test_client: $(CLIENT_BIN)
@@ -82,9 +88,9 @@ test_client: $(CLIENT_BIN)
 # Request parser test
 request: $(BUILD_DIR) $(CLIENT_REQUEST_BIN)
 
-$(CLIENT_REQUEST_BIN): $(CLIENT_DIR)/main_request.cpp $(CLIENT_DIR)/Request.cpp $(CLIENT_DIR)/Request.hpp
+$(CLIENT_REQUEST_BIN): $(REQUEST_SRCS) $(CLIENT_DIR)/Request.hpp
 	@echo "Building request parser test..."
-	$(CXX) $(CXXFLAGS) -o $@ $(CLIENT_DIR)/main_request.cpp $(CLIENT_DIR)/Request.cpp $(UTILS_DIR)/str_slice/StrSlice.cpp $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -o $@ $(REQUEST_SRCS) $(LDFLAGS)
 	@echo "✓ Request parser test built"
 
 test_request: $(CLIENT_REQUEST_BIN)
