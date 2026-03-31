@@ -23,4 +23,21 @@ char &StrSlice::operator[](size_t pos) {
   return (allocation[pos]);
 }
 
+const char &StrSlice::operator[](size_t pos) const {
+  if (pos >= len) {
+    throw std::out_of_range("Tried to access out of range of the string slice");
+  }
+  return (allocation[pos]);
+}
+
 char &StrSlice::at(size_t pos) { return (allocation[pos]); }
+const char &StrSlice::at(size_t pos) const { return (allocation[pos]); }
+
+size_t StrSlice::getLen(void) const { return (len); }
+
+std::ostream &operator<<(std::ostream &os, const StrSlice &str) {
+  for (size_t i = 0; i < str.getLen(); i++) {
+    os << str.at(i);
+  }
+  return (os);
+}

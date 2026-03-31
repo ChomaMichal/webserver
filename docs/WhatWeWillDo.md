@@ -27,6 +27,7 @@ and stream which reads to buffer and now we are able to parse  might need modifi
 ## http parsing
 - we need to decide on http version
 - - be able to parse messages when we don't have the whole messages TCP works as a stream not as a message so in 1 read we can have multiple requests at the same part
+- - good source https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview
 
 
 
