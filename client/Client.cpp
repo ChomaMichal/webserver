@@ -9,6 +9,8 @@ Client &Client::operator=(const Client &obj) {
   return (*this);
 };
 
+Client::Client(Stream &obj) : _stream(obj) {}
+
 Request &Client::getRequest(void) { return (_request); }
 
 void Client::close() { _stream.close(); }
