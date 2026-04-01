@@ -20,8 +20,8 @@ UTILS_SRCS = $(UTILS_DIR)/main.cpp
 SOCKETS_MAIN = $(SOCKETS_DIR)/main.cpp
 SOCKETS_SRCS = $(SOCKETS_DIR)/Listener.cpp $(SOCKETS_DIR)/Networking.cpp $(SOCKETS_DIR)/Stream.cpp
 STR_SLICE_SRC = $(UTILS_DIR)/str_slice/StrSlice.cpp
-CLIENT_SRCS = $(CLIENT_DIR)/main_request.cpp $(CLIENT_DIR)/Request.cpp $(STR_SLICE_SRC)
-REQUEST_SRCS = $(CLIENT_DIR)/main_request.cpp $(CLIENT_DIR)/Request.cpp $(STR_SLICE_SRC)
+CLIENT_SRCS = $(CLIENT_DIR)/main_request.cpp $(CLIENT_DIR)/Client.cpp $(CLIENT_DIR)/Request.cpp $(SOCKETS_SRCS) $(STR_SLICE_SRC)
+REQUEST_SRCS = $(CLIENT_DIR)/main_request.cpp $(CLIENT_DIR)/Client.cpp $(CLIENT_DIR)/Request.cpp $(SOCKETS_SRCS) $(STR_SLICE_SRC)
 
 # PHONY targets
 .PHONY: all clean clean_all utils sockets client test_utils test_sockets test_client test_request request help
