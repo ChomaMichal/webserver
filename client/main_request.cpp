@@ -1,5 +1,5 @@
-#include "../sockets/Listener.cpp"
-#include "../sockets/Networking.cpp"
+#include "../sockets/Listener.hpp"
+#include "../sockets/Networking.hpp"
 #include "Client.hpp"
 #include "Request.hpp"
 #include <arpa/inet.h>
@@ -29,7 +29,7 @@ int main() {
     if (Networking::update_fd_status() == 0) {
       continue;
     }
-    if (lis->getFdStatus() == POLLIN) {
+    if ((*lis).getFdStatus() == POLLIN) {
       auto res = Stream::accept(*lis);
       if (res.is_error()) {
         std::cerr << res.get_error() << std::endl;
