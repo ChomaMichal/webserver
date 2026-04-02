@@ -34,3 +34,5 @@ Result<bool> Client::recieveRequest(void) {
   bool rt = true;
   return (Result<bool>(rt));
 }
+
+Stream &Client::getStream(void) { return (_stream); }

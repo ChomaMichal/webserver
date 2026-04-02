@@ -47,9 +47,10 @@ Result<bool> Stream::read(void) {
       std::cerr << "Read error: " << strerror(errno) << std::endl;
       return (Result<bool>("Error on reading"));
     }
-    std::cout << "Read " << rt << " bytes" << std::endl;
+    // std::cout << "Read " << rt << " bytes" << std::endl;
     buffer[rt] = 0;
     bool hehe = true;
+    pollarr[pl_index].revents = 0;
     return (Result<bool>(hehe));
   }
 

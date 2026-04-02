@@ -98,7 +98,7 @@ static Option<StrSlice> parseHttpVersion(char *&buffer) {
     return (Option<StrSlice>(false));
   }
   StrSlice rt(buffer, 8);
-  buffer += 10; // Skip "HTTP/X.X\r\n"
+  buffer += 8; // Skip "HTTP/X.X"
   return (Option<StrSlice>(rt));
 }
 
@@ -126,6 +126,7 @@ static Option<StrSlice> parseHost(char *&buffer) {
   char *lbuffer = ptr + 8; // Skip "\r\nHost:"
   for (; *lbuffer == ' ' || *lbuffer == '\t'; lbuffer++)
     ;
+  // skip empty spaces
   char *end = strcasestr(lbuffer, "\r\n");
   if (end == NULL) {
     return (Option<StrSlice>(false));

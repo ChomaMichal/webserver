@@ -16,6 +16,7 @@ public:
   Result<bool> recieveRequest(void);
   void close(void);
   Request &getRequest(void);
+  Stream &getStream(void);
 
 private:
   Client();
