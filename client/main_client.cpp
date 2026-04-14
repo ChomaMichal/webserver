@@ -28,6 +28,7 @@ int main() {
             << std::endl;
   while (1) {
     if (Networking::update_fd_status() == 0) {
+      sleep(1);
       continue;
     }
     if ((*lis).getFdStatus() == POLLIN) {
@@ -56,8 +57,6 @@ int main() {
         std::cout << element->getStream().getBuffer() << std::endl;
         std::cout << "=================================" << std::endl;
         std::cout << element->getRequest() << std::endl;
-
-        return 1;
       }
     }
   }

@@ -19,6 +19,7 @@ Networking::Networking(const Networking &) {}
 Networking &Networking::operator=(const Networking &) { return *this; }
 
 void Networking::init(void) {
+  _send_buffer_len = 0;
   for (int i = 0; i < FD_MAX; i++) {
     pollarr[i].fd = -1;
     pollarr[i].events = 0;

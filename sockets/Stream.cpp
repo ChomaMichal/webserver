@@ -63,6 +63,29 @@ Result<bool> Stream::read(void) {
   }
 }
 
+Result<bool> Stream::write(void) {
+
+  if (pollarr[pl_index].revents & (POLLOUT | POLLHUP)) {
+
+    size_t rt = ::write(getFd(), _send_buffer, _send_buffer_len);
+    if (rt == -1) {
+      std::cerr << "Read write: " << strerror(errno) << std::endl;
+      return (Result<bool>("Error on reading"));
+    }
+    bool hehe = true;
+    pollarr[pl_index].revents = 0;
+    return (Result<bool>(hehe));
+  }
+
+  else if (pollarr[pl_index].revents & (POLLERR | POLLHUP)) {
+    std::cerr << "Write error: " << strerror(errno) << std::endl;
+    return (Result<bool>("Error on poll"));
+  } else {
+    bool hehe = false;
+    return (Result<bool>(hehe));
+  }
+}
+
 Result<Option<Stream>> Stream::accept(Listener &lis) {
 
   if (Networking::free_use.isFull() == true) {

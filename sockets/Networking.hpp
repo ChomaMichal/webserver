@@ -8,6 +8,10 @@
 #define FD_MAX 50
 #endif
 
+#ifndef MAX_SEND_BUFFER
+#define MAX_SEND_BUFFER 1024
+#endif
+
 #ifdef NOALLOC
 #ifndef MAX_STREAMS
 #define MAX_STREAMS FD_MAX
@@ -25,6 +29,8 @@ class Stream;
 //  it should only use fds after checking status
 class Networking {
 protected:
+  static size_t _send_buffer_len;
+  static char _send_buffer[MAX_SEND_BUFFER];
   static struct pollfd pollarr[FD_MAX];
   static bool initialized;
   Networking();

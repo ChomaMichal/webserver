@@ -35,4 +35,22 @@ Result<bool> Client::recieveRequest(void) {
   return (Result<bool>(rt));
 }
 
+Result<bool> Client::sendResponse(void) {
+  auto err = _stream.write();
+  if (err.is_error()) {
+    return (Result<bool>(err.get_error()));
+  }
+
+  if ((*err) == false) {
+    return (Result<bool>(*err));
+  }
+
+  bool rt = true;
+  return (Result<bool>(rt));
+}
+
+void Client::setSendBuffer(char *buff, size_t len) {
+  std::memcpy(_send_buffer, buff, len);
+}
+
 Stream &Client::getStream(void) { return (_stream); }
