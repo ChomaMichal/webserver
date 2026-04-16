@@ -98,7 +98,7 @@ static Option<StrSlice> parseHttpVersion(char *&buffer) {
     return (Option<StrSlice>(false));
   }
   StrSlice rt(buffer, 8);
-  buffer += 10; // Skip "HTTP/X.X\r\n"
+  buffer += 8; // Skip "HTTP/X.X"
   return (Option<StrSlice>(rt));
 }
 
@@ -126,6 +126,7 @@ static Option<StrSlice> parseHost(char *&buffer) {
   char *lbuffer = ptr + 8; // Skip "\r\nHost:"
   for (; *lbuffer == ' ' || *lbuffer == '\t'; lbuffer++)
     ;
+  // skip empty spaces
   char *end = strcasestr(lbuffer, "\r\n");
   if (end == NULL) {
     return (Option<StrSlice>(false));
@@ -167,20 +168,26 @@ Option<Request> Request::parse(char *buffer) {
   Request req;
   {
     auto maybe = parseMethod(buffer);
-    if (maybe.is_none())
+    if (maybe.is_none()) {
+      std::cerr << "method" << std::endl;
       return (Option<Request>(true));
+    }
     req.setMethod(maybe.unwrap());
   }
   {
     auto maybe = parseURI(buffer);
-    if (maybe.is_none())
+    if (maybe.is_none()) {
+      std::cerr << "Uri" << std::endl;
       return (Option<Request>(true));
+    }
     req.setRequestURI(maybe.unwrap());
   }
   {
     auto maybe = parseHttpVersion(buffer);
-    if (maybe.is_none())
+    if (maybe.is_none()) {
+      std::cerr << "verson" << std::endl;
       return (Option<Request>(true));
+    }
     req.setHTTPVersion(maybe.unwrap());
   }
   int there_is_header = 0;

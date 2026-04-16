@@ -6,6 +6,8 @@
 
 struct pollfd Networking::pollarr[FD_MAX];
 bool Networking::initialized = false;
+size_t Networking::_send_buffer_len = 0;
+char Networking::_send_buffer[MAX_SEND_BUFFER];
 
 #ifdef NOALLOC
 Stream *Networking::prealoc_stream = nullptr;
@@ -19,6 +21,7 @@ Networking::Networking(const Networking &) {}
 Networking &Networking::operator=(const Networking &) { return *this; }
 
 void Networking::init(void) {
+  _send_buffer_len = 0;
   for (int i = 0; i < FD_MAX; i++) {
     pollarr[i].fd = -1;
     pollarr[i].events = 0;

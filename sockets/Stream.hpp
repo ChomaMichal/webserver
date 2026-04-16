@@ -17,6 +17,7 @@ public:
   Stream(const Stream &other);
   ~Stream();
   Result<bool> read(void);
+  Result<bool> write(void);
   Stream &operator=(const Stream &other);
   static Result<Option<Stream>> accept(Listener &lis);
   int getFd(void) const;

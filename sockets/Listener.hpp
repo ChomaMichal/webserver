@@ -11,7 +11,7 @@
 class Listener : Networking {
 private:
   static size_t fd_refcount[FD_MAX];
-  
+
 public:
   Listener(const Listener &other);
   const Listener &operator=(const Listener &other);
@@ -24,7 +24,8 @@ public:
   Listener(int fd);
   Listener();
   Result<Option<Stream>> accept(void);
-  
+  void close(void);
+
 private:
   size_t pl_index;
   static void init(void);
