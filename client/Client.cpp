@@ -25,6 +25,7 @@ Result<bool> Client::recieveRequest(void) {
     return (Result<bool>(*err));
   }
 
+  _stream.printBuffer();
   auto maybe = Request::parse(_stream.getBuffer());
   if (maybe.is_none()) {
     return (Result<bool>("Error in parsing request"));
