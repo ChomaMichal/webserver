@@ -168,20 +168,26 @@ Option<Request> Request::parse(char *buffer) {
   Request req;
   {
     auto maybe = parseMethod(buffer);
-    if (maybe.is_none())
+    if (maybe.is_none()) {
+      std::cerr << "method" << std::endl;
       return (Option<Request>(true));
+    }
     req.setMethod(maybe.unwrap());
   }
   {
     auto maybe = parseURI(buffer);
-    if (maybe.is_none())
+    if (maybe.is_none()) {
+      std::cerr << "Uri" << std::endl;
       return (Option<Request>(true));
+    }
     req.setRequestURI(maybe.unwrap());
   }
   {
     auto maybe = parseHttpVersion(buffer);
-    if (maybe.is_none())
+    if (maybe.is_none()) {
+      std::cerr << "verson" << std::endl;
       return (Option<Request>(true));
+    }
     req.setHTTPVersion(maybe.unwrap());
   }
   int there_is_header = 0;

@@ -6,6 +6,8 @@
 
 struct pollfd Networking::pollarr[FD_MAX];
 bool Networking::initialized = false;
+size_t Networking::_send_buffer_len = 0;
+char Networking::_send_buffer[MAX_SEND_BUFFER];
 
 #ifdef NOALLOC
 Stream *Networking::prealoc_stream = nullptr;

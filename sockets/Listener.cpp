@@ -9,7 +9,8 @@ size_t Listener::fd_refcount[FD_MAX];
 
 Listener::Listener() : Networking(), pl_index(0) {}
 
-Listener::Listener(const Listener &other) : Networking(), pl_index(other.pl_index) {
+Listener::Listener(const Listener &other)
+    : Networking(), pl_index(other.pl_index) {
   if (pl_index >= 0) {
     fd_refcount[pl_index]++;
   }
@@ -30,7 +31,7 @@ Listener::~Listener() {
   if (pl_index >= 0 && pl_index < FD_MAX) {
     fd_refcount[pl_index]--;
     if (fd_refcount[pl_index] == 0) {
-      close(pl_index);
+      ::close(pl_index);
     }
   }
 }
@@ -41,7 +42,7 @@ const Listener &Listener::operator=(const Listener &other) {
     if (pl_index >= 0 && pl_index < FD_MAX) {
       fd_refcount[pl_index]--;
       if (fd_refcount[pl_index] == 0) {
-        close(pl_index);
+        ::close(pl_index);
       }
     }
     this->pl_index = other.pl_index;
@@ -56,13 +57,9 @@ short Listener::getFdStatus(void) { return pollarr[pl_index].revents; }
 
 Result<Option<Stream>> Listener::accept() { return (Stream::accept(*this)); }
 
-void Listener::init(void) {
-  Networking::init();
-}
+void Listener::init(void) { Networking::init(); }
 
-struct pollfd *Listener::getPollarr(void) {
-  return Networking::pollarr;
-}
+struct pollfd *Listener::getPollarr(void) { return Networking::pollarr; }
 
 Result<Listener> Listener::connect(int port) {
   int fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -70,24 +67,29 @@ Result<Listener> Listener::connect(int port) {
     Result<Listener> rt("Failed to create socket");
     return (rt);
   }
-  
+
   struct sockaddr_in server_adress;
   std::memset(&server_adress, 0, sizeof(sockaddr_in));
   server_adress.sin_family = AF_INET;
   server_adress.sin_port = htons(port);
   server_adress.sin_addr.s_addr = INADDR_ANY;
   if (bind(fd, (struct sockaddr *)&server_adress, sizeof(sockaddr_in)) == -1) {
-    close(fd);
+    ::close(fd);
     Result<Listener> rt("Failed to bind socket");
     return (rt);
   }
   if (listen(fd, SOMAXCONN) == -1) {
-    close(fd);
+    ::close(fd);
     Result<Listener> rt("Failed to listen on socket");
     return (rt);
   }
-  
+
   Listener lis(fd);
   Result<Listener> rt = Result<Listener>(lis);
   return rt;
+}
+
+void Listener::close(void) {
+  ::close(Networking::pollarr[pl_index].fd);
+  Networking::pollarr[pl_index].fd = 0;
 }

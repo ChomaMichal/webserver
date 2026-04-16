@@ -24,7 +24,7 @@ CLIENT_SRCS = $(CLIENT_DIR)/main_client.cpp $(CLIENT_DIR)/Client.cpp $(CLIENT_DI
 REQUEST_SRCS = $(CLIENT_DIR)/main_request.cpp $(CLIENT_DIR)/Client.cpp $(CLIENT_DIR)/Request.cpp $(SOCKETS_SRCS) $(STR_SLICE_SRC)
 
 # PHONY targets
-.PHONY: all clean clean_all utils sockets client test_utils test_sockets test_client test_request request help
+.PHONY: all clean clean_all utils sockets client make_client test_utils test_sockets test_client test_request request help
 
 # Default target
 all: utils sockets client
@@ -74,6 +74,8 @@ test_sockets: $(SOCKETS_BIN)
 
 # Client module
 client: $(BUILD_DIR) $(CLIENT_BIN)
+
+make_client: client
 
 $(CLIENT_BIN): $(CLIENT_SRCS) $(CLIENT_DIR)/Request.hpp | $(BUILD_DIR)
 	@echo "Building client module..."

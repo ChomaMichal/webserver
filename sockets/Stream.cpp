@@ -38,6 +38,7 @@ short Stream::getFdStatus(void) {
 }
 void Stream::printBuffer(void) const { std::cout << buffer << std::endl; }
 
+// rewrite to Result<Option<Bool>>
 Result<bool> Stream::read(void) {
 
   if (pollarr[pl_index].revents & (POLLIN | POLLHUP)) {
@@ -63,6 +64,7 @@ Result<bool> Stream::read(void) {
   }
 }
 
+// rewrite to Result<Option<Bool>>
 Result<bool> Stream::write(void) {
 
   if (pollarr[pl_index].revents & (POLLOUT | POLLHUP)) {

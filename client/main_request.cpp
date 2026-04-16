@@ -29,7 +29,7 @@ int main() {
     if (Networking::update_fd_status() == 0) {
       continue;
     }
-    if ((*lis).getFdStatus() == POLLIN) {
+    if (lis->getFdStatus() == POLLIN) {
       auto res = Stream::accept(*lis);
       if (res.is_error()) {
         std::cerr << res.get_error() << std::endl;
