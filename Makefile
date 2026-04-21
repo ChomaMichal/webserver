@@ -1,6 +1,6 @@
 # Compiler and flags
 CXX = c++
-CXXFLAGS = -Wall -Wextra -std=c++17
+CXXFLAGS = -Wall -Wextra -std=c++17 -g
 LDFLAGS =
 
 # Directories
@@ -20,8 +20,8 @@ UTILS_SRCS = $(UTILS_DIR)/main.cpp
 SOCKETS_MAIN = $(SOCKETS_DIR)/main.cpp
 SOCKETS_SRCS = $(SOCKETS_DIR)/Listener.cpp $(SOCKETS_DIR)/Networking.cpp $(SOCKETS_DIR)/Stream.cpp
 STR_SLICE_SRC = $(UTILS_DIR)/str_slice/StrSlice.cpp
-CLIENT_SRCS = $(CLIENT_DIR)/main_client.cpp $(CLIENT_DIR)/Client.cpp $(CLIENT_DIR)/Request.cpp $(SOCKETS_SRCS) $(STR_SLICE_SRC)
-REQUEST_SRCS = $(CLIENT_DIR)/main_request.cpp $(CLIENT_DIR)/Client.cpp $(CLIENT_DIR)/Request.cpp $(SOCKETS_SRCS) $(STR_SLICE_SRC)
+CLIENT_SRCS = $(CLIENT_DIR)/main_client.cpp $(CLIENT_DIR)/Client.cpp $(CLIENT_DIR)/Request.cpp $(CLIENT_DIR)/Response.cpp $(SOCKETS_SRCS) $(STR_SLICE_SRC)
+REQUEST_SRCS = $(CLIENT_DIR)/main_request.cpp $(CLIENT_DIR)/Client.cpp $(CLIENT_DIR)/Request.cpp $(CLIENT_DIR)/Response.cpp $(SOCKETS_SRCS) $(STR_SLICE_SRC)
 
 # PHONY targets
 .PHONY: all clean clean_all utils sockets client make_client test_utils test_sockets test_client test_request request help
@@ -44,6 +44,9 @@ help:
 	@echo "  make clean_all      - Clean all modules"
 
 # Utils module
+
+re: clean_all all
+
 $(BUILD_DIR):
 	@mkdir -p $(BUILD_DIR)
 

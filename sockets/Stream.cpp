@@ -126,7 +126,7 @@ Result<Option<Stream>> Stream::accept(Listener &lis) {
       Stream stream = Networking::prealoc_stream[loc];
       stream.loc_of_alloc = loc;
       Networking::pollarr[fd].fd = fd;
-      Networking::pollarr[fd].events = POLLIN | POLLHUP | POLLERR;
+      Networking::pollarr[fd].events = POLLIN | POLLOUT | POLLHUP | POLLERR;
       Networking::pollarr[fd].revents = 0;
       stream.pl_index = fd;
       Option<Stream> some(stream);

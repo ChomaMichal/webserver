@@ -8,8 +8,6 @@
 class Client : Networking {
 public:
   ~Client();
-  Client(const Client &obj);
-  Client &operator=(const Client &obj);
   Client(Stream &obj);
 
   // returns false if there is no request true is request was susccesfuly
@@ -17,6 +15,8 @@ public:
   Result<bool> recieveRequest(void);
   Result<bool> sendResponse(void);
   Result<bool> setResponse(void); // mehras
+  bool isResponseReady(void) const;
+  bool isResponseFullySent(void) const;
   void close(void);
   Request &getRequest(void);
   Stream &getStream(void);
@@ -25,7 +25,11 @@ public:
 
 private:
   Client();
+  Client(const Client &obj);
+  Client &operator=(const Client &obj);
   Stream _stream;
   Request _request;
-  Response _response; // mehras
+  Response _response;
+  bool _response_ready;
+  size_t _response_sent_bytes;
 };
