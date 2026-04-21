@@ -17,7 +17,6 @@ Option<Response> Response::setResponse(const Request& req) {
     res._httpVersion = req.getHTTPVersion(); // add set mehras
   }
   {
-    res._code = "200";
   }
   return (Option<Response>(res));
 }
