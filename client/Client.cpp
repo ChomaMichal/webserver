@@ -25,7 +25,7 @@ Result<bool> Client::recieveRequest(void) {
     return (Result<bool>(*err));
   }
 
-  _stream.printBuffer();
+  //_stream.printBuffer(); why
   auto maybe = Request::parse(_stream.getBuffer());
   if (maybe.is_none()) {
     return (Result<bool>("Error in parsing request"));
@@ -45,6 +45,8 @@ Result<bool> Client::sendResponse(void) {
   if ((*err) == false) {
     return (Result<bool>(*err));
   }
+
+  auto maybe = Response::setResponse(_request); // mehras
 
   bool rt = true;
   return (Result<bool>(rt));

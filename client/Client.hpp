@@ -3,6 +3,7 @@
 #include "../sockets/Stream.hpp"
 #include "../utils/result/Result.hpp"
 #include "Request.hpp"
+#include "Response.hpp"
 
 class Client : Networking {
 public:
@@ -15,6 +16,7 @@ public:
   // recieved and parsed error is set in result
   Result<bool> recieveRequest(void);
   Result<bool> sendResponse(void);
+  Result<bool> setResponse(void); // mehras
   void close(void);
   Request &getRequest(void);
   Stream &getStream(void);
@@ -25,4 +27,5 @@ private:
   Client();
   Stream _stream;
   Request _request;
+  Response _response; // mehras
 };

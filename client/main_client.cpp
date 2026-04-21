@@ -51,13 +51,12 @@ int main() {
         std::cerr << ret.get_error() << std::endl;
         return 1;
       }
+
       if (*ret == false) {
         element++;
       } else {
-        // mehras
-        std::cout << element->getStream().getBuffer() << std::endl;
-        std::cout << "=================================" << std::endl;
-        std::cout << element->getRequest() << std::endl;
+        auto resp_ret = element->setResponse(); //mehras
+        element->sendResponse();
       }
     }
   }
