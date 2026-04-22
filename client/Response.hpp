@@ -5,6 +5,21 @@
 #include <cstddef>
 #include <iostream>
 
+#ifndef MAX_HEADER_SIZE
+#define MAX_HEADER_SIZE 8192
+#endif
+enum e_content_type {
+	HTML,
+	CSS,
+	JAVASCRIPT,
+	JSON,
+	PLAIN,
+	PNG,
+	JPEG,
+	XICON,
+	OTHER,	
+};
+
 class Response {
 public:
  //SET OR RESET PRIVATE VALUES
@@ -16,8 +31,8 @@ public:
 //  std::string getStatusReason();
 
  //HANDLE STUFF
-//  Option<bool> handleRequest(const Request& req); #todo
-//  Option<bool> handleGet(const Request& req);
+ Option<int> handleRequest(const Request& req); //#todo
+ Option<bool> handleGet(const Request& req);
  //  Option<bool> handlePost(const Request& req);
  //  Option<bool> handleDelete(const Request& req);
  void setBasicMessage();
@@ -32,23 +47,30 @@ public:
  ~Response();
 
 private:
- size_t _sent_offset;
- size_t _total_size;
- int _status_code;
+ bool _header_sent;
 
- std::string _root;
- std::string _filepath;
-
- std::string _http_version;
- std::string _code;
- std::string _code_reason;
- std::string _status_line;
+ size_t _head_offset;
+ size_t _header_size;
+ char _header[MAX_HEADER_SIZE];
  
- std::string _server;
- std::string _content_type;
- std::string _header;
+ const char * _root = "./root"; //alv
+ StrSlice _filepath;
+ 
+ const char *_http_version = "HTTP/1.1";
+ int _status_code;
+ 
+ const char *_server = "Server: webserver";
+ const char *_header_connection_close = "Connection: close";
+ const char *_header_content_length = "Content-Length: ";
+ const char *_header_content_type = "Content-Type: ";
+ const char *_header_allow_get_post_delete = "Allow: GET, POST, DELETE";
 
- std::string _body;
+ e_content_type _content_type;
+ ssize_t _content_len;
 
- std::string _message;
+ size_t _body_offset;
+
+//  std::string _body;
+
+//  std::string _message
 };

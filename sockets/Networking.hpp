@@ -9,7 +9,7 @@
 #endif
 
 #ifndef MAX_SEND_BUFFER
-#define MAX_SEND_BUFFER 1024
+#define MAX_SEND_BUFFER 8192
 #endif
 
 #ifdef NOALLOC
