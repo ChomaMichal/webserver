@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#pragma once
 
 typedef struct s_route {
   std::string root;
