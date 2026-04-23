@@ -7,7 +7,7 @@ Implement HTTP response creation and sending through the client. Response is ser
 
 ## Phase 1: Enhance Response Class
 
-### TODO 1.1: Add new private members to Response.hpp
+### 1.1: Add new private members to Response.hpp
 Track serialization state:
 ```cpp
 private:
@@ -53,7 +53,7 @@ Result<void> Response::setResponseWithFile(const Request& req, const std::string
 }
 ```
 
-### TODO 1.3: Implement `serialize()` in Response.cpp
+### 1.3: Implement `chunker()` in Response.cpp
 - **Input**: char buffer, max_len
 - **Output**: number of bytes written
 - **Logic**:
@@ -86,7 +86,7 @@ size_t Response::serialize(char* buffer, size_t max_len) {
 }
 ```
 
-### TODO 1.4: Add helper methods to Response
+### 1.4: Add helper methods to Response Strslice_path.cpp
 ```cpp
 public:
   bool isFullySent() const;        // Returns true if all bytes serialized
@@ -95,7 +95,7 @@ public:
   void setContentType(const char* type);  // e.g., "text/html"
 ```
 
-### TODO 1.5: Add request dispatch method to Response.hpp
+### 1.5: Add request dispatch method to Response.hpp
 ```cpp
 public:
   // Main entry point - dispatches to appropriate HTTP method handler
@@ -108,7 +108,7 @@ private:
   Result<void> handleDELETE(const Request& req, const std::string& root_path);
 ```
 
-### TODO 1.6: Implement `handleRequest()` in Response.cpp
+### TODO 1.6: Implement `handleRequest()` in Response.cpp next!
 Dispatcher that routes to correct handler based on HTTP method:
 
 ```cpp
@@ -133,7 +133,7 @@ Result<void> Response::handleRequest(const Request& req, const std::string& root
 }
 ```
 
-### TODO 1.7: Implement `handleGET()` in Response.cpp
+### TODO 1.6.1: Implement `handleGET()` in Response.cpp
 Handle GET requests - retrieve and return file content:
 
 ```cpp
@@ -171,7 +171,7 @@ Result<void> Response::handleGET(const Request& req, const std::string& root_pat
 - `404 Not Found` - file does not exist
 - `500 Internal Server Error` - file exists but cannot read
 
-### TODO 1.8: Implement `handlePOST()` in Response.cpp
+### TODO 1.6.2: Implement `handlePOST()` in Response.cpp
 Handle POST requests - write/create file with request body:
 
 ```cpp
@@ -217,7 +217,7 @@ Result<void> Response::handlePOST(const Request& req, const std::string& root_pa
 - `201 Created` - file successfully written
 - `500 Internal Server Error` - write failed
 
-### TODO 1.9: Implement `handleDELETE()` in Response.cpp
+### TODO 1.6.3: Implement `handleDELETE()` in Response.cpp
 Handle DELETE requests - remove file from disk:
 
 ```cpp
@@ -269,7 +269,7 @@ private:
   size_t _response_sent_bytes;  // Total bytes sent so far
 ```
 
-### TODO 2.2: Modify `sendResponse()` in Client.cpp
+### 2.2: Modify `sendResponse()` in Client.cpp
 - **Current behavior**: Just calls `_stream.write()` and creates Response
 - **New behavior**:
   1. If Response not created → call `_response.handleRequest(_request, "./root")`
@@ -306,7 +306,7 @@ Result<bool> Client::sendResponse(void) {
 }
 ```
 
-### TODO 2.3: Add helper method to Client
+### 2.3: Add helper method to Client
 ```cpp
 public:
   bool isResponseFullySent() const {
@@ -318,7 +318,7 @@ public:
 
 ## Phase 3: Main Client Implementation
 
-### TODO 3.1: Update main_client.cpp
+### TODO 3.1: Update main_client.cpp half done
 Implement response sending loop:
 
 **Example:**
@@ -335,8 +335,12 @@ int main() {
     std::cerr << "Error receiving request\n";
     return 1;
   }
+
+  // Step 2: Set response in client
+
+  client->setResponse();
   
-  // Step 2: Send response in chunks
+  // Step 3: Send response in chunks
   while (true) {
     auto send_result = client.sendResponse();
     
