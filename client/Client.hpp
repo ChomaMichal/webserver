@@ -27,9 +27,10 @@ private:
   Client();
   Client(const Client &obj);
   Client &operator=(const Client &obj);
+  void setFilePath();
   Stream _stream;
   Request _request;
   Response _response;
+  const char * _root = "./root"; //alv
   bool _response_ready;
-  size_t _response_sent_bytes;
 };

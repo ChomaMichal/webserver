@@ -1,9 +1,10 @@
 #include "Client.hpp"
+#include <cstring>
 
-Client::Client() : _response_sent_bytes(0), _response_ready(false) {}
+Client::Client() :  _response_ready(false) {}
 Client::~Client() {}
 
-Client::Client(Stream &obj) : _stream(obj), _response_sent_bytes(0), _response_ready(false) {}
+Client::Client(Stream &obj) : _stream(obj),  _response_ready(false) {}
 
 Request &Client::getRequest(void) { return (_request); }
 
@@ -32,12 +33,60 @@ Result<bool> Client::recieveRequest(void) {
 }
 
 Result<bool> Client::setResponse(void) {
-  _response.setBasicMessage(); // handle request #todo
+  setFilePath();
+  auto request_res = _response.handleRequest(_request); // handle request #todo
+  if (request_res.is_error()) {
+    return Result<bool>(request_res.get_error());
+  }
 
-  _response_sent_bytes = 0;
   _response_ready = true;
   bool ret = true;
   return (Result<bool>(ret));
+}
+
+void Client::setFilePath() {
+  StrSlice uri = _request.getRequestURI();
+  char full_path[MAX_FILE_PATH];
+  size_t out_len = 0;
+  size_t root_len = std::strlen(_root);
+
+  std::memcpy(full_path, _root, root_len);
+  out_len = root_len;
+
+  if (out_len > 0 && full_path[out_len - 1] != '/') {
+    full_path[out_len] = '/';
+    out_len++;
+  }
+
+  size_t i = 0;
+  if (uri.getLen() > 0 && uri[0] == '/') {
+    i = 1;
+  }
+
+
+  if (i >= uri.getLen()) { // only "/" or "" in URI
+    const char *index_file = "index.html";
+    size_t n = std::strlen(index_file);
+    if (out_len + n >= MAX_FILE_PATH) {
+      _response.setFilePath("");
+      return ;
+    }
+    std::memcpy(full_path + out_len, index_file, n);
+    out_len += n;
+  }
+  else {
+    for (; i < uri.getLen(); ++i) {
+      if (out_len + 1 >= MAX_FILE_PATH) {
+        _response.setFilePath("");
+        return ;
+      }
+      full_path[out_len] = uri[i];
+      out_len++;
+    }
+  }
+
+  full_path[out_len] = 0;
+  _response.setFilePath(full_path);
 }
 
 Result<bool> Client::sendResponse(void) {
@@ -50,7 +99,6 @@ Result<bool> Client::sendResponse(void) {
     return Result<bool>(not_ready);
   }
 
-
   char temp_buffer[MAX_SEND_BUFFER];
   size_t to_send = _response.chunker(temp_buffer, MAX_SEND_BUFFER);
   if (to_send == 0) {
@@ -58,19 +106,14 @@ Result<bool> Client::sendResponse(void) {
     return Result<bool>(done);
   }
 
-  std::cout.write(temp_buffer, to_send);
-  std::cout << "\n"; // verbose
   setSendBuffer(temp_buffer, to_send);
   auto err = _stream.write();
   if (err.is_error()) {
     return (Result<bool>(err.get_error()));
   }
-
   if ((*err) == false) {
     return (Result<bool>(*err));
   }
-
-  _response_sent_bytes += to_send;
 
   bool rt = true;
   return (Result<bool>(rt));

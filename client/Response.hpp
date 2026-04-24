@@ -1,13 +1,28 @@
 #pragma once
 #include "../utils/option/Option.hpp"
+#include "../utils/result/Result.hpp"
 #include "../utils/str_slice/StrSlice.hpp"
 #include "Request.hpp"
 #include <cstddef>
+#include <sys/stat.h>
 #include <iostream>
 
-#ifndef MAX_HEADER_SIZE
-#define MAX_HEADER_SIZE 8192
+#ifndef MAX_REQUEST_BODY_BYTES
+# define MAX_REQUEST_BODY_BYTES 1048576 // 1MB
 #endif
+
+#ifndef MAX_HEADER_SIZE
+# define MAX_HEADER_SIZE 8192
+#endif
+
+#ifndef ROOT_MAX
+# define ROOT_MAX 256
+#endif
+
+#ifndef MAX_FILE_PATH
+# define MAX_FILE_PATH (256 + ROOT_MAX)
+#endif
+
 enum e_content_type {
 	HTML,
 	CSS,
@@ -31,10 +46,14 @@ public:
 //  std::string getStatusReason();
 
  //HANDLE STUFF
- Option<int> handleRequest(const Request& req); //#todo
- Option<bool> handleGet(const Request& req);
- //  Option<bool> handlePost(const Request& req);
- //  Option<bool> handleDelete(const Request& req);
+ Result<bool> handleRequest(const Request& req); //#todo
+ Result<bool> handleGet(const Request& req);
+ Result<bool> handlePost(const Request& req);
+ Result<bool> handleDelete(const Request& req);
+ Result<bool> handleError();
+
+ bool getHeaderSent() const;
+ void setFilePath(const char *path);
  void setBasicMessage();
 
  size_t chunker(char *tmp_buffer, size_t max_len);
@@ -53,14 +72,14 @@ private:
  size_t _header_size;
  char _header[MAX_HEADER_SIZE];
  
- const char * _root = "./root"; //alv
- StrSlice _filepath;
  
- const char *_http_version = "HTTP/1.1";
+ char _filepath[MAX_FILE_PATH];
+ 
+ const char *_http_version = "HTTP/1.1 ";
  int _status_code;
  
- const char *_server = "Server: webserver";
- const char *_header_connection_close = "Connection: close";
+ const char *_server = "Server: webserver"; // will change
+ const char *_header_connection_close = "Connection: close"; // might change
  const char *_header_content_length = "Content-Length: ";
  const char *_header_content_type = "Content-Type: ";
  const char *_header_allow_get_post_delete = "Allow: GET, POST, DELETE";
@@ -68,9 +87,10 @@ private:
  e_content_type _content_type;
  ssize_t _content_len;
 
+ int _body_fd;
  size_t _body_offset;
 
-//  std::string _body;
-
-//  std::string _message
+ bool setHeader();
+ void setContentType();
+ bool file_stat(struct stat &);
 };
