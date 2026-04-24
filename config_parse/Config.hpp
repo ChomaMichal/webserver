@@ -14,3 +14,5 @@ public:
 private:
   std::vector<Config_Server> _servers;
 };
+void getline_stripspace(std::ifstream &infile, std::string &line);
+void getline_stripspace(std::ifstream &infile, std::string &line, char delim);
