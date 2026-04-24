@@ -368,7 +368,6 @@ size_t Response::chunker(char *tmp_buffer, size_t max_len) {
   }
 
   return (size_t)read_len;
-  return 0;
 }
 
 void Response::setBasicMessage() {

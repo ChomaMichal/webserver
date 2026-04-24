@@ -49,7 +49,7 @@ int main() {
       auto res = element->recieveRequest();
       if (res.is_error()) {
         std::cerr << res.get_error() << std::endl;
-        return (1);
+        
       }
       if (*res == true) {
         element++;
