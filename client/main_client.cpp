@@ -34,15 +34,15 @@ int main() {
     }
     if ((*lis).getFdStatus() & POLLIN) {
       auto res = Stream::accept(*lis);
-      std::cout << "after accept loop :: 37" << std::endl;
+      // std::cout << "after accept loop :: 37" << std::endl;
       if (res.is_error()) {
         std::cerr << res.get_error() << std::endl;
         return (1);
       }
       auto stream = res.unwrap();
       if (stream.is_some()) {
-        std::cout << "stream is some :: 45 fd = " << stream.unwrap().getFd() << std::endl;
-        std::cout << "stream is some :: 45 pl_index = " << stream.unwrap().pl_index << std::endl;
+        // std::cout << "stream is some :: 45 fd = " << stream.unwrap().getFd() << std::endl;
+        // std::cout << "stream is some :: 45 pl_index = " << stream.unwrap().pl_index << std::endl;
         
         arr.push_back(*stream);
       }
@@ -85,7 +85,7 @@ int main() {
       }
 
       if (element->isResponseReady()) {
-        std::cout << "in main before send response :: 80" << std::endl; 
+        // std::cout << "in main before send response :: 80" << std::endl; 
         auto send_ret = element->sendResponse();
         if (send_ret.is_error()) {
           std::cerr << send_ret.get_error() << std::endl;

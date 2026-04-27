@@ -8,6 +8,7 @@ BUILD_DIR = build
 UTILS_DIR = utils
 SOCKETS_DIR = sockets
 CLIENT_DIR = client
+TMP_DIR = root/tmpfiles
 
 # Output files
 UTILS_BIN = $(BUILD_DIR)/test_utils
@@ -112,6 +113,7 @@ clean:
 clean_all: clean
 	@find . -name "*.o" -delete
 	@find . -name "a.out" -delete
+	@rm -rf $(TMP_DIR)/*
 	@echo "✓ Full clean complete"
 
 # Run all tests
