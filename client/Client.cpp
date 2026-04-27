@@ -2,6 +2,13 @@
 #include <cstring>
 
 Client::Client() :  _response_ready(false) {}
+Client::Client(const Client& in ) {
+  *this = in;
+}
+
+// Client& Client::operator=(const Client& in) {
+
+// }
 Client::~Client() {}
 
 Client::Client(Stream &obj) : _stream(obj),  _response_ready(false) {}
@@ -26,6 +33,7 @@ Result<bool> Client::recieveRequest(void) {
     return (Result<bool>("Error in parsing request"));
   }
 
+  _response_ready = false;
   _request = (*maybe);
   _response.reset();
   bool rt = true;
@@ -45,12 +53,15 @@ Result<bool> Client::setResponse(void) {
 }
 
 void Client::setFilePath() {
+  const char * root = _root;
+  if (_request.getMethod() != GET)
+    root = _root_tmp;
   StrSlice uri = _request.getRequestURI();
   char full_path[MAX_FILE_PATH];
   size_t out_len = 0;
-  size_t root_len = std::strlen(_root);
+  size_t root_len = std::strlen(root);
 
-  std::memcpy(full_path, _root, root_len);
+  std::memcpy(full_path, root, root_len);
   out_len = root_len;
 
   if (out_len > 0 && full_path[out_len - 1] != '/') {
@@ -64,7 +75,7 @@ void Client::setFilePath() {
   }
 
 
-  if (i >= uri.getLen()) { // only "/" or "" in URI
+  if (i >= uri.getLen() && _request.getMethod() == GET) { // only "/" or "" in URI
     const char *index_file = "index.html";
     size_t n = std::strlen(index_file);
     if (out_len + n >= MAX_FILE_PATH) {
@@ -121,7 +132,7 @@ Result<bool> Client::sendResponse(void) {
 
 bool Client::isResponseFullySent(void) const {
   if (_response_ready == false) {
-    return true;
+    return false;
   }
   return _response.isFullySent();
 }

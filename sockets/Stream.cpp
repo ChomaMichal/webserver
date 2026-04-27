@@ -41,8 +41,9 @@ void Stream::printBuffer(void) const { std::cout << buffer << std::endl; }
 // rewrite to Result<Option<Bool>>
 Result<bool> Stream::read(void) {
 
+  std::cout << "in read in stream :: 44" << std::endl;
   if (pollarr[pl_index].revents & (POLLIN | POLLHUP)) {
-
+    std::cout << "after if in read in stream :: 46" << std::endl;
     size_t rt = ::read(getFd(), buffer, REQUEST_BODY_MAX);
     if (rt == -1) {
       std::cerr << "Read error: " << strerror(errno) << std::endl;
@@ -52,6 +53,7 @@ Result<bool> Stream::read(void) {
     buffer[rt] = 0;
     bool hehe = true;
     pollarr[pl_index].revents = 0;
+    std::cout << "after read in stream :: 55" << std::endl;
     return (Result<bool>(hehe));
   }
 
@@ -59,14 +61,14 @@ Result<bool> Stream::read(void) {
     std::cerr << "Read error: " << strerror(errno) << std::endl;
     return (Result<bool>("Error on poll"));
   } else {
-    static int tries = -1;
-    if (tries == -1) {
-      tries = 5;
-    }
-    tries--;
-    if (tries == 0) 
-     return Result<bool>("maxed out");
-    std::cout << "here2\n";
+    // static int tries = -1;
+    // if (tries == -1) {
+    //   tries = 5;
+    // }
+    // tries--;
+    // if (tries == 0)
+    //  return Result<bool>("maxed out");
+    // std::cout << "here2\n";
     bool hehe = false;
     return (Result<bool>(hehe));
   }

@@ -93,5 +93,5 @@ private:
 
  bool setHeader();
  void setContentType();
- bool file_stat(struct stat &);
+ bool file_stat_read(struct stat &);
 };

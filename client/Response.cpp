@@ -120,14 +120,14 @@ Result<bool> Response::handleRequest(const Request& req) {
   else if (req.getMethod() == POST) {
     return handlePost(req);
   }
-  // else if (req.getMethod() == DELETE) {
-  //   return handleDelete(req);
-  // }
+  else if (req.getMethod() == DELETE) {
+    return handleDelete(req);
+  }
   _status_code = 405;
   return handleError();
 }
 
-bool Response::file_stat(struct stat& _file_stat) {
+bool Response::file_stat_read(struct stat& _file_stat) {
   errno = 0;
   if (stat(_filepath, &_file_stat) == -1) {
     if (errno == ENOENT) {
@@ -293,7 +293,7 @@ bool Response::setHeader() {
 
 Result<bool> Response::handleGet(const Request& req) {
   struct stat _file_stat;
-  if (!file_stat(_file_stat))
+  if (!file_stat_read(_file_stat))
     return (handleError());
   if (!setHeader())
     return Result<bool>("Cannot set head shit has hit the fan");

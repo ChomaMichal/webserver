@@ -68,6 +68,18 @@ Result<Listener> Listener::connect(int port) {
     return (rt);
   }
 
+  int opt = 1;
+  if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
+    ::close(fd);
+    Result<Listener> rt("Failed to set SO_REUSEADDR");
+    return (rt);
+  }
+  if (setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt)) == -1) {
+    ::close(fd);
+    Result<Listener> rt("Failed to set SO_REUSEPORT");
+    return (rt);
+  }
+
   struct sockaddr_in server_adress;
   std::memset(&server_adress, 0, sizeof(sockaddr_in));
   server_adress.sin_family = AF_INET;

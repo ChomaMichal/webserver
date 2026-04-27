@@ -22,15 +22,16 @@ public:
   Stream &getStream(void);
   // will only send at most  MAX_SEND_BUFFER bites
   void setSendBuffer(char *buff, size_t len);
-
-private:
   Client();
   Client(const Client &obj);
-  Client &operator=(const Client &obj);
+  Client &operator=(const Client &obj) = default;
+  
+  private:
   void setFilePath();
   Stream _stream;
   Request _request;
   Response _response;
   const char * _root = "./root"; //alv
+  const char * _root_tmp = "./root/tmpfiles";
   bool _response_ready;
 };
