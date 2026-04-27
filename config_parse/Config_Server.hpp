@@ -22,6 +22,8 @@ public:
   bool &getUploadLocation();
 
 private:
+  void init_members();
+  void validate_server_members();
   std::pair<std::string, int>
       InterfacePort; // interface+port pair (example: 127.0.0.1, 80). Port set
                      // to 80 by default
@@ -48,5 +50,6 @@ private:
                    // String is never null, it contains quotes around what
                    // should be considered as string.
   bool UploadAllowed;
-  std::string UploadLocation; // if upload_allowed == false, this is null.
+  std::string UploadLocation; // if upload_allowed == false, this is null
+  ssize_t MaxPayloadSize;     // if -1, no payload max
 };
