@@ -17,15 +17,15 @@ Stream prealloc_stream[MAX_STREAMS];
 Stream::~Stream() {}
 
 Stream::Stream()
-    : Networking(), pl_index(0), buffer(new char[REQUEST_BODY_MAX]) {
+    : Networking(), pl_index(0){
   Networking::pollarr[0].fd = -1;
 }
 
 Stream::Stream(const Stream &other)
-    : Networking(), pl_index(other.pl_index), buffer(other.buffer) {}
+    : Networking(), pl_index(other.pl_index){}
 
 Stream &Stream::operator=(const Stream &other) {
-  this->prealoc_stream = other.prealoc_stream;
+  this->Networking::prealoc_buff[pl_index] = other.Networking::prealoc_buff[pl_index];
   this->pl_index = other.pl_index;
   return (*this);
 }
@@ -33,22 +33,22 @@ Stream &Stream::operator=(const Stream &other) {
 short Stream::getFdStatus(void) {
   return (Networking::pollarr[pl_index].revents);
 }
-void Stream::printBuffer(void) const { std::cout << buffer << std::endl; }
+void Stream::printBuffer(void) const { std::cout << Networking::prealoc_buff[pl_index] << std::endl; }
 
 // rewrite to Result<Option<Bool>>
 Result<bool> Stream::read(void) {
 
-  std::cout << "in read in stream :: 44" << std::endl;
+  // std::cout << "in read in stream :: 44" << std::endl;
   if (pollarr[pl_index].revents & (POLLIN | POLLHUP)) {
     std::cout << "after if in read in stream :: 46" << std::endl;
     std::cout << "fd == " << pollarr[pl_index].fd << std::endl;
-    size_t rt = ::read(pollarr[pl_index].fd, buffer, REQUEST_BODY_MAX);
+    size_t rt = ::read(pollarr[pl_index].fd, Networking::prealoc_buff[pl_index], REQUEST_BODY_MAX);
     if (rt == -1) {
       std::cerr << "Read error: " << strerror(errno) << std::endl;
       return (Result<bool>("Error on reading"));
     }
     std::cout << "Read " << rt << " bytes" << std::endl;
-    buffer[rt] = 0;
+    Networking::prealoc_buff[pl_index][rt] = 0;
     bool hehe = true;
     pollarr[pl_index].revents = 0;
     std::cout << "after read in stream :: 55" << std::endl;
@@ -97,10 +97,10 @@ Result<bool> Stream::write(void) {
 
 Result<Option<Stream>> Stream::accept(Listener &lis) {
 
-  if (Networking::free_use.isFull() == true) {
-    Option<Stream> none(false);
-    Result<Option<Stream>> rt(none);
-  }
+  // if (Networking::free_use.isFull() == true) {
+  //   Option<Stream> none(false);
+  //   Result<Option<Stream>> rt(none);
+  // }
 
   short events = lis.getFdStatus();
 
@@ -119,6 +119,7 @@ Result<Option<Stream>> Stream::accept(Listener &lis) {
   }
 
   if (events & POLLIN) {
+    errno = 0;
     int fd = ::accept(lis.getFd(), NULL, NULL);
     if (fd == -1) {
 #ifdef DEBUG
@@ -129,13 +130,13 @@ Result<Option<Stream>> Stream::accept(Listener &lis) {
     }
 
     else {
-      size_t loc = free_use.pop();
-      Stream stream = Networking::prealoc_stream[loc];
-      stream.loc_of_alloc = loc;
-      Networking::pollarr[fd].fd = fd;
-      Networking::pollarr[fd].events = POLLIN | POLLOUT | POLLHUP | POLLERR;
-      Networking::pollarr[fd].revents = 0;
-      stream.pl_index = fd;
+      size_t loc = free_use.top();
+      free_use.pop();
+      Stream stream; 
+      Networking::pollarr[loc].fd = fd;
+      Networking::pollarr[loc].events = POLLIN | POLLOUT | POLLHUP | POLLERR;
+      Networking::pollarr[loc].revents = 0;
+      stream.pl_index = loc;
       Option<Stream> some(stream);
       Result<Option<Stream>> rt(some);
       return (rt);
@@ -147,16 +148,19 @@ Result<Option<Stream>> Stream::accept(Listener &lis) {
 }
 
 void Stream::close(void) {
+  std::cout << "in close stream fd :: 150 =" << getFd() << " pl_index" << pl_index <<  std::endl;
+
   ::close(getFd());
+  pollarr[pl_index].fd = -1;
   pollarr[pl_index].events = 0;
   pollarr[pl_index].revents = 0;
-  pl_index = 0;
-  free_use.push(loc_of_alloc);
+  free_use.push(pl_index);
+
 }
 
 int Stream::getFd(void) const { return (pollarr[pl_index].fd); }
 
-char *Stream::getBuffer(void) { return (buffer); }
+char *Stream::getBuffer(void) { return (Networking::prealoc_buff[pl_index]); }
 
 void Stream::setPl(const struct pollfd &fd) {
   for (int i = 0; i < FD_MAX; i++) {

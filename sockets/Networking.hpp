@@ -1,6 +1,8 @@
 #pragma once
-#include "../utils/stack/Stack.hpp"
+//#include "../utils/std::stack/std::stack.hpp"
+#include <stack>
 #include <sys/poll.h>
+#include <stddef.h>
 
 #define NOALLOC
 
@@ -39,8 +41,8 @@ protected:
   virtual Networking &operator=(const Networking &);
 
 #ifdef NOALLOC
-  static Stream *prealoc_stream;
-  static Stack<int> free_use;
+  static char **prealoc_buff;
+  static std::stack<int> free_use;
 #endif
 
 public:
@@ -49,7 +51,7 @@ public:
   // will initialize the pollfd arr to be usable
   static void init(void);
 #ifdef NOALLOC
-  static Stream *getPrealocStream(void);
+  static char* *getPrealocBuff(void);
 #endif
 public:
 };

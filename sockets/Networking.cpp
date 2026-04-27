@@ -10,8 +10,8 @@ size_t Networking::_send_buffer_len = 0;
 char Networking::_send_buffer[MAX_SEND_BUFFER];
 
 #ifdef NOALLOC
-Stream *Networking::prealoc_stream = nullptr;
-Stack<int> Networking::free_use;
+char **Networking::prealoc_buff = nullptr;
+std::stack<int> Networking::free_use;
 #endif
 
 Networking::Networking() {}
@@ -28,20 +28,19 @@ void Networking::init(void) {
     pollarr[i].revents = 0;
   }
 #ifdef NOALLOC
-  prealoc_stream = new Stream[MAX_STREAMS];
-  for (int i = 0; i < MAX_STREAMS; i++) {
-    prealoc_stream[i].setPl(pollarr[i]);
+  prealoc_buff = new char *[MAX_STREAMS];
+  for (size_t i = 0; i < MAX_STREAMS; i++){
+    prealoc_buff[i] = new char[MAX_SEND_BUFFER];
   }
 
-  Stack<int> stack(MAX_STREAMS + 1);
+  
   for (size_t i = 0; i < MAX_STREAMS; i++) {
-    stack.push(i);
+    free_use.push(i);
   }
-  free_use = stack;
 #endif
 }
 int Networking::update_fd_status(void) { return poll(pollarr, FD_MAX, 0); }
 
 Networking::~Networking() {}
 
-Stream *Networking::getPrealocStream(void) { return (prealoc_stream); }
+char **Networking::getPrealocBuff(void) { return (prealoc_buff); }
