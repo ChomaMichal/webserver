@@ -8,22 +8,25 @@ public:
   Config_Server();
   Config_Server(std::ifstream &infile);
   virtual ~Config_Server();
-  std::pair<std::string, int> &getInterfacePort();
-  std::string &getServerName();
-  bool &getIsDefault();
-  std::string &getNotFound();
-  std::string &getUnauthorized();
-  std::string &getConflict();
-  std::string &getMethodNotAllowed();
-  bool &getAutoIndex();
-  std::string &getDefaultIndex();
-  std::pair<int, std::string> &getRedirection();
-  bool &getUploadAllowed();
-  bool &getUploadLocation();
+  const std::pair<std::string, int> &getInterfacePort();
+  const std::string &getServerName();
+  const bool &getIsDefault();
+  const std::string &getRoot();
+  const std::string &getNotFound();
+  const std::string &getUnauthorized();
+  const std::string &getConflict();
+  const std::string &getMethodNotAllowed();
+  const bool &getAutoIndex();
+  const std::string &getDefaultIndex();
+  const std::pair<int, std::string> &getRedirection();
+  const bool &getUploadAllowed();
+  const std::string &getUploadLocation();
+  const ssize_t &getMaxPayloadSize();
 
-private:
+protected:
   void init_members();
   void validate_server_members();
+  bool are_fields_ready();
   std::pair<std::string, int>
       InterfacePort; // interface+port pair (example: 127.0.0.1, 80). Port set
                      // to 80 by default

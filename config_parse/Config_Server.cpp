@@ -1,7 +1,15 @@
 #include "Config_Server.hpp"
 #include "Config.hpp"
+#include "Config_Route.hpp"
 #include <stdexcept>
 
+bool Config_Server::are_fields_ready() {
+  if (this->InterfacePort.first == "")
+    return false;
+  if (this->UploadAllowed == true && this->UploadLocation == "")
+    return false;
+  return true;
+}
 static void separate_interface_port_pairs(std::string line,
                                           std::pair<std::string, int> &pair) {
 
@@ -126,13 +134,51 @@ Config_Server::Config_Server(std::ifstream &infile) {
       } else if (line == "return") {
         getline_stripspace(infile, line);
         get_redirection_pair(line, this->Redirection);
-      } else if (line == "}")
-        return; // also check every member of the class;
-                // else pass on to config_route, but also check every member of
-                // class, because we dont allow post-route stuff
+      } else if (line == "route") {
+        if (are_fields_ready())
+          this->routes.push_back(Config_Route(infile, *this));
+        else
+          throw std::runtime_error(
+              "Invalid Config File: Routes should always be at the end");
+      } else if (line == "}") {
+        if (are_fields_ready())
+          return;
+        else
+          throw std::runtime_error(
+              "Invalid Config File: Routes should always be at the end");
+      }
     }
     throw(std::runtime_error("Invalid Config File: Scope missing"));
   } catch (std::exception &e) {
     throw;
   }
 }
+
+const std::pair<std::string, int> &Config_Server::getInterfacePort() {
+  return this->InterfacePort;
+}
+const std::string &Config_Server::getServerName() { return this->ServerName; }
+const bool &Config_Server::getIsDefault() { return this->IsDefault; }
+const std::string &Config_Server::getNotFound() { return this->NotFound; }
+const std::string &Config_Server::getUnauthorized() {
+  return this->Unauthorized;
+}
+const std::string &Config_Server::getConflict() { return this->Conflict; }
+const std::string &Config_Server::getMethodNotAllowed() {
+  return this->MethodNotAllowed;
+}
+const bool &Config_Server::getAutoIndex() { return this->AutoIndex; }
+const std::string &Config_Server::getDefaultIndex() {
+  return this->DefaultIndex;
+}
+const std::pair<int, std::string> &Config_Server::getRedirection() {
+  return this->Redirection;
+}
+const bool &Config_Server::getUploadAllowed() { return this->UploadAllowed; }
+const std::string &Config_Server::getUploadLocation() {
+  return this->UploadLocation;
+}
+const ssize_t &Config_Server::getMaxPayloadSize() {
+  return this->MaxPayloadSize;
+}
+const std::string &Config_Server::getRoot() { return this->root; }

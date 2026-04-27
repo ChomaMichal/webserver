@@ -3,7 +3,7 @@
 class Config_Route : public Config_Server {
 public:
   Config_Route();
-  Config_Route(std::ifstream &infile, const Config_Server &server);
+  Config_Route(std::ifstream &infile, Config_Server &server);
   virtual ~Config_Route();
   std::string &getRoot();
   std::string &getLocation();
