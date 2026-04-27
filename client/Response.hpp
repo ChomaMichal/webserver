@@ -52,6 +52,7 @@ public:
  Result<bool> handleDelete(const Request& req);
  Result<bool> handleError();
 
+ const char *getcHeader() const;
  bool getHeaderSent() const;
  void setFilePath(const char *path);
  void setBasicMessage();

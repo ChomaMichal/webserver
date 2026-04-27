@@ -46,6 +46,7 @@ int main() {
     auto element = arr.begin();
     while (element != arr.end()) {
       if (!element->isResponseReady()) {
+        std::cout << "here\n";
         auto ret = element->recieveRequest();
         if (ret.is_error()) {
           std::cerr << ret.get_error() << std::endl;

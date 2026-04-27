@@ -48,7 +48,7 @@ Result<bool> Stream::read(void) {
       std::cerr << "Read error: " << strerror(errno) << std::endl;
       return (Result<bool>("Error on reading"));
     }
-    // std::cout << "Read " << rt << " bytes" << std::endl;
+    std::cout << "Read " << rt << " bytes" << std::endl;
     buffer[rt] = 0;
     bool hehe = true;
     pollarr[pl_index].revents = 0;
@@ -59,6 +59,14 @@ Result<bool> Stream::read(void) {
     std::cerr << "Read error: " << strerror(errno) << std::endl;
     return (Result<bool>("Error on poll"));
   } else {
+    static int tries = -1;
+    if (tries == -1) {
+      tries = 5;
+    }
+    tries--;
+    if (tries == 0) 
+     return Result<bool>("maxed out");
+    std::cout << "here2\n";
     bool hehe = false;
     return (Result<bool>(hehe));
   }

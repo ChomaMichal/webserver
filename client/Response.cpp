@@ -48,7 +48,7 @@ void Response::reset() {
   _status_code = 200;
   _content_type = OTHER;
 
-  _content_len = -1;
+  _content_len = 0;
   _body_fd = -1;
   _body_offset = 0;
   
@@ -117,9 +117,9 @@ Result<bool> Response::handleRequest(const Request& req) {
   if (req.getMethod() == GET) {
     return handleGet(req);
   }
-  // else if (req.getMethod() == POST) {
-  //   return handlePost(req);
-  // }
+  else if (req.getMethod() == POST) {
+    return handlePost(req);
+  }
   // else if (req.getMethod() == DELETE) {
   //   return handleDelete(req);
   // }
@@ -303,6 +303,21 @@ Result<bool> Response::handleGet(const Request& req) {
 }
 
 Result<bool> Response::handlePost(const Request& req) {
+  int fd = open(_filepath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+  if (fd == -1) {
+    _status_code = 500;
+    return handleError();
+  }
+  StrSlice body = req.getBody();
+
+  int _written = write(fd, &body.at(0), body.getLen());
+  if (_written != body.getLen()) {
+    close(fd);
+    _status_code = 500;
+    return handleError();
+  }
+  _status_code = 201;
+  setHeader();
   (void)req;
   bool ok = true;
   return Result<bool>(ok);
