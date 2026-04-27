@@ -27,7 +27,7 @@ int main() {
   std::cout << "Send an HTTP request using: curl http://127.0.0.1:" << PORT
             << std::endl;
   while (1) {
-    std::cout << "update_fd_status == 0 :: 31" << std::endl;
+    // std::cout << "update_fd_status == 0 :: 31" << std::endl;
     if (Networking::update_fd_status() == 0) {
       sleep(1);
       continue;
@@ -42,17 +42,17 @@ int main() {
       if (stream.is_some()) {
         arr.push_back(*stream);
       }
-      std::cout << "Creating stream :: 45" << std::endl;
+      // std::cout << "Creating stream :: 45" << std::endl;
     }
 
     auto element = arr.begin();
     while (element != arr.end()) {
-      std::cout << "In element loop :: 49" << std::endl;
+      // std::cout << "In element loop :: 49" << std::endl;
 
       if (!element->isResponseReady()) {
         std::cout << "here\n";
         auto ret = element->recieveRequest();
-        std::cout << "After recieveRequest :: 54" << std::endl;
+        // std::cout << "After recieveRequest :: 54" << std::endl;
 
         if (ret.is_error()) {
           std::cerr << ret.get_error() << std::endl;
@@ -62,7 +62,7 @@ int main() {
         }
 
         if (*ret == false) {
-          std::cout << "if (*ret == false) : 59" << std::endl;
+          // std::cout << "if (*ret == false) : 59" << std::endl;
           element++;
           continue;
         }
@@ -94,7 +94,7 @@ int main() {
 
       element++;
     }
-    std::cout << "breaks out of the loop :: 91" << std::endl;
+    // std::cout << "breaks out of the loop :: 91" << std::endl;
   }
   return (0);
 }

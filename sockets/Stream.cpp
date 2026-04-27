@@ -17,17 +17,14 @@ Stream prealloc_stream[MAX_STREAMS];
 Stream::~Stream() {}
 
 Stream::Stream()
-    : Networking(), pl_index(0), buffer(new char[REQUEST_BODY_MAX]),
-      pl(Networking::pollarr[0]) {
+    : Networking(), pl_index(0), buffer(new char[REQUEST_BODY_MAX]) {
   Networking::pollarr[0].fd = -1;
 }
 
 Stream::Stream(const Stream &other)
-    : Networking(), pl_index(other.pl_index), buffer(other.buffer),
-      pl(Networking::pollarr[pl_index]) {}
+    : Networking(), pl_index(other.pl_index), buffer(other.buffer) {}
 
 Stream &Stream::operator=(const Stream &other) {
-  this->pl = other.pl;
   this->prealoc_stream = other.prealoc_stream;
   this->pl_index = other.pl_index;
   return (*this);
@@ -44,7 +41,8 @@ Result<bool> Stream::read(void) {
   std::cout << "in read in stream :: 44" << std::endl;
   if (pollarr[pl_index].revents & (POLLIN | POLLHUP)) {
     std::cout << "after if in read in stream :: 46" << std::endl;
-    size_t rt = ::read(getFd(), buffer, REQUEST_BODY_MAX);
+    std::cout << "fd == " << pollarr[pl_index].fd << std::endl;
+    size_t rt = ::read(pollarr[pl_index].fd, buffer, REQUEST_BODY_MAX);
     if (rt == -1) {
       std::cerr << "Read error: " << strerror(errno) << std::endl;
       return (Result<bool>("Error on reading"));
@@ -76,7 +74,6 @@ Result<bool> Stream::read(void) {
 
 // rewrite to Result<Option<Bool>>
 Result<bool> Stream::write(void) {
-
   if (pollarr[pl_index].revents & (POLLOUT | POLLHUP)) {
 
     size_t rt = ::write(getFd(), _send_buffer, _send_buffer_len);
@@ -150,9 +147,9 @@ Result<Option<Stream>> Stream::accept(Listener &lis) {
 }
 
 void Stream::close(void) {
-  ::close(pl.fd);
-  pl.events = 0;
-  pl.revents = 0;
+  ::close(getFd());
+  pollarr[pl_index].events = 0;
+  pollarr[pl_index].revents = 0;
   pl_index = 0;
   free_use.push(loc_of_alloc);
 }
