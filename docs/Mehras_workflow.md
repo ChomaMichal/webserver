@@ -43,11 +43,15 @@ private:
   3. **helper needed**: `bool parentDirectoryExists(const char *path)` using `stat()`.
 
 #### handleDelete()
-- **Current Support**: Deletes file at `_filepath`. Correctly prevents directory deletion.
-- **Verified Status Codes**:
-  - `204 No Content`: Successful deletion.
-  - `404 Not Found`: Target missing.
-  - `403 Forbidden`: Target is a directory or permission denied.
+- **Current Support**: Placeholder only (returns true). 
+- **TODO / Next steps**:
+  1. **Validation**: Check if `_filepath` points to a directory. 
+  2. **Restriction**: If target is a directory, return `403 Forbidden`.
+  3. **Action**: If it is a file, call `unlink(_filepath)`.
+  4. **Status Codes**:
+     - `204 No Content`: Successful deletion.
+     - `404 Not Found`: Target missing.
+     - `403 Forbidden`: Target is a directory or permission denied.
 
 ### 1.3: Chunker Logic (As Implemented)
 The `chunker()` function in [client/Response.cpp](client/Response.cpp#L291) is the core of the streaming mechanism.
@@ -97,35 +101,19 @@ private:
   bool _response_ready;
 ```
 
-### 2.2: The `sendResponse` Loop (TODO)
-The `sendResponse()` implementation needs to correctly pump bytes from `Response::chunker` to `Stream::write`.
+### 3.2: The `sendResponse` Loop (Verified)
+The `sendResponse()` implementation correctly pumps bytes from `Response::chunker` to `Stream::write`.
 
-```cpp
-Result<bool> Client::sendResponse(void) {
-  if (!_response_ready) {
-    return Result<bool>("Response not ready");
-  }
-
-  char buf[MAX_SEND_BUFFER];
-  size_t bytes = _response.chunker(buf, MAX_SEND_BUFFER);
-
-  if (bytes > 0) {
-    // _stream needs a way to take a raw buffer or we use setSendBuffer
-    setSendBuffer(buf, bytes); 
-    auto res = _stream.write();    // Sends current buffer
-    if (res.is_error()) return res;
-    return Result<bool>(false);    // Not fully sent
-  }
-
-  return Result<bool>(true); // Fully sent
-}
-```
+- It checks `POLLOUT` status via `_stream.getFdStatus()`.
+- It calls `_response.chunker()` to retrieve the next chunk of data (headers or body).
+- It uses `setSendBuffer()` and `_stream.write()` to transmit the data.
+- It returns `true` (done) when `chunker` returns 0, and `false` (not done) if it needs to be called again in the next `poll()` cycle.
 
 ---
 
-## Phase 3: Missing Enhancements (TODO)
+## Phase 4: Missing Enhancements (TODO)
 
-### 3.1: Redirections (301/307)
+### 4.1: Redirections (301/307)
 Redirections are used to tell the client that the resource they requested is at a different URI.
 
 #### When and Why?
@@ -157,14 +145,65 @@ Content-Length: 0
 Connection: close
 ```
 
-### 3.2: Directory Indexer Helper
+#### Learn More (Sources):
+- [MDN Web Docs: Redirections in HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections) - Excellent overview of how browsers handle redirects.
+- [MDN Web Docs: 301 Moved Permanently](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/301)
+- [MDN Web Docs: 307 Temporary Redirect](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/307)
+- [RFC 9110 (HTTP Semantics)](https://www.rfc-editor.org/rfc/rfc9110.html#name-redirection-3xx) - The official standard outlining the 3xx status codes.
+
+### 4.2: Directory Indexer Helper
 We need a robust way to list files:
 ```cpp
 // Suggested location: utils/directory_utils.cpp
 std::string get_html_list(const char* path); 
 ```
 
-### 3.3: Error Page Customization
+### 4.3: Error Page Customization
 Instead of just `404 Not Found` in plain text, look for `root/errors/404.html`.
 
 ---
+
+## Implementation Checklist
+- [x] Basic GET/POST logic in `Response.cpp`
+- [x] Chunker-based streaming
+- [x] File descriptor safety (automatic close in `reset()` and `chunker()`)
+- [x] `sendResponse()` loop properly implemented in `Client`
+- [ ] Implement `handleDelete()` logic (currently just a placeholder)
+- [ ] Implement Directory Listing (Autoindex)
+- [ ] Implement Parent Directory check for POST (409 Conflict)
+- [ ] Implement Custom Error Handling (`Client` orchestrating `.html` pages)
+
+---
+
+## Appendix: HTTP Protocol Examples
+
+### A.1: HTTP Request Format
+Every request follows this fundamental structure that our `Request` class parses:
+
+**Simple Example (Incoming Request):**
+```http
+POST /submit-form HTTP/1.1
+Host: 127.0.0.1:2222
+Content-Length: 12
+Connection: close
+
+Hello World!
+```
+
+**Key Components:**
+1. **Request Line**: `POST /submit-form HTTP/1.1`
+2. **Headers**: Key-value pairs followed by `\r\n`.
+3. **Blank Line**: Separates headers from the body.
+4. **Body**: The raw data (e.g., `Hello World!`).
+
+### A.2: HTTP Response Format
+This is what our `Response` class generates using `setHeader()` and `chunker()`:
+
+```http
+HTTP/1.1 201 Created\r\n
+Server: webserv\r\n
+Content-Type: text/plain\r\n
+Content-Length: 0\r\n
+Connection: close\r\n
+\r\n
+```
