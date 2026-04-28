@@ -8,6 +8,7 @@ bool Config_Server::are_fields_ready() {
     return false;
   if (this->UploadAllowed == true && this->UploadLocation == "")
     return false;
+  // check if there's spaces inside the strings
   return true;
 }
 static void separate_interface_port_pairs(std::string line,
@@ -134,7 +135,7 @@ Config_Server::Config_Server(std::ifstream &infile) {
       } else if (line == "return") {
         getline_stripspace(infile, line);
         get_redirection_pair(line, this->Redirection);
-      } else if (line == "route") {
+      } else if (line == "location") {
         if (are_fields_ready())
           this->routes.push_back(Config_Route(infile, *this));
         else
@@ -145,7 +146,7 @@ Config_Server::Config_Server(std::ifstream &infile) {
           return;
         else
           throw std::runtime_error(
-              "Invalid Config File: Routes should always be at the end");
+              "Invalid Config File: Incomplete server data");
       }
     }
     throw(std::runtime_error("Invalid Config File: Scope missing"));
