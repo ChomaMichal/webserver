@@ -1,8 +1,9 @@
 #pragma once
+#include "Config_Route.hpp"
 #include <fstream>
 #include <string>
+#include <utility>
 #include <vector>
-class Config_Route;
 class Config_Server {
 public:
   Config_Server();
@@ -22,6 +23,7 @@ public:
   const bool &getUploadAllowed();
   const std::string &getUploadLocation();
   const ssize_t &getMaxPayloadSize();
+  std::vector<Config_Route> &getRoutes();
 
 protected:
   void init_members();

@@ -1,8 +1,8 @@
 #include "Config_Server.hpp"
-#include "Config.hpp"
 #include "Config_Route.hpp"
+#include "utils.hpp"
+#include <iostream>
 #include <stdexcept>
-
 bool Config_Server::are_fields_ready() {
   if (this->InterfacePort.first == "")
     return false;
@@ -27,24 +27,8 @@ static void separate_interface_port_pairs(std::string line,
     throw("Invalid Config File: Invalid Port");
   pair.second = iport;
 }
-
-static void get_redirection_pair(std::string line,
-                                 std::pair<int, std::string> pair) {
-  size_t space = line.find_first_of(' ');
-  if (space == std::string::npos) {
-    char *endptr;
-    pair.first = std::strtol(line.c_str(), &endptr, 10);
-    if (*endptr != '\0')
-      throw("Invalid Config File: Invalid Redirection");
-  } else {
-    std::string sredir = line.substr(0, space);
-    char *endptr;
-    pair.first = std::strtol(line.c_str(), &endptr, 10);
-    if (*endptr != '\0')
-      throw("Invalid Config File: Invalid Redirection");
-    pair.second = line.substr(space + 1, std::string::npos);
-  }
-}
+Config_Server::Config_Server() {}
+Config_Server::~Config_Server() {}
 void Config_Server::init_members() {
 
   this->InterfacePort.second = 80;
@@ -70,10 +54,10 @@ Config_Server::Config_Server(std::ifstream &infile) {
     init_members();
     std::string line;
     getline_stripspace(infile, line);
-    if (line != "{")
+    if (line != "{" && !infile.eof())
       throw(std::runtime_error("Invalid Config File: Scope missing"));
     while (!infile.eof()) {
-      getline_stripspace(infile, line, ' ');
+      getline_stripspace(infile, line, " \n");
       if (line == "listen") {
         getline_stripspace(infile, line);
         separate_interface_port_pairs(line, this->InterfacePort);
@@ -102,8 +86,7 @@ Config_Server::Config_Server(std::ifstream &infile) {
         getline_stripspace(infile, line);
         if (line == "on") {
           this->AutoIndex = true;
-        }
-        if (line == "off") {
+        } else if (line == "off") {
           this->AutoIndex = false;
         } else {
           throw std::runtime_error(
@@ -116,12 +99,11 @@ Config_Server::Config_Server(std::ifstream &infile) {
         getline_stripspace(infile, line);
         if (line == "on") {
           this->UploadAllowed = true;
-        }
-        if (line == "off") {
+        } else if (line == "off") {
           this->UploadAllowed = false;
         } else {
           throw std::runtime_error(
-              "Invalid Config File: invalid autoindex status");
+              "Invalid Config File: invalid upload status");
         }
       } else if (line == "upload_location") {
         getline_stripspace(infile, line);
@@ -147,9 +129,11 @@ Config_Server::Config_Server(std::ifstream &infile) {
         else
           throw std::runtime_error(
               "Invalid Config File: Incomplete server data");
+      } else {
+        throw std::runtime_error(
+            "Invalid Config File: unrecognized directive: " + line);
       }
     }
-    throw(std::runtime_error("Invalid Config File: Scope missing"));
   } catch (std::exception &e) {
     throw;
   }
@@ -183,3 +167,4 @@ const ssize_t &Config_Server::getMaxPayloadSize() {
   return this->MaxPayloadSize;
 }
 const std::string &Config_Server::getRoot() { return this->root; }
+std::vector<Config_Route> &Config_Server::getRoutes() { return this->routes; }
