@@ -74,7 +74,7 @@ int main() {
           element++;
           continue;
         }
-
+        // std::cout << element->getRequest() << std::endl;
         auto response_ret = element->setResponse();
         if (response_ret.is_error()) {
           std::cerr << response_ret.get_error() << std::endl;

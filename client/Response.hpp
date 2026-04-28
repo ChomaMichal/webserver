@@ -32,6 +32,7 @@ enum e_content_type {
 	PNG,
 	JPEG,
 	XICON,
+	BIN,
 	OTHER,	
 };
 
@@ -55,7 +56,6 @@ public:
  const char *getcHeader() const;
  bool getHeaderSent() const;
  void setFilePath(const char *path);
- void setBasicMessage();
 
  size_t chunker(char *tmp_buffer, size_t max_len);
 
@@ -90,8 +90,11 @@ private:
 
  int _body_fd;
  size_t _body_offset;
+ char _mem_body[MAX_HEADER_SIZE];
+ bool _has_mem_body;
 
  bool setHeader();
  void setContentType();
- bool file_stat_read(struct stat &);
+ bool file_stat_read(struct stat &, const Request &req);
+ bool generateDirectoryIndex(const char *dir_path, const Request &req);
 };

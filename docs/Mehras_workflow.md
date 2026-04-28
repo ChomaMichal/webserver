@@ -21,26 +21,31 @@ private:
   e_content_type _content_type; 
   ssize_t _content_len;      // Size of the body (file size or 0)
 
-  int _body_fd;              // FD for the file being served
+  int _body_fd;              // FD for the file being served (streaming files)
   size_t _body_offset;       // Bytes of body already sent
+  char _mem_body[8192];      // Fixed size memory buffer for dynamically generated bodies (e.g. Autoindex)
+  bool _has_mem_body;        // Flag identifying whether to stream _body_fd or serve _mem_body from RAM
 ```
 
 ### 1.2: Method Handling Requirements (Merged with Code)
 
 #### handleGET()
-- **Current Support**: Serves regular files.
-- **Autoindex Behavior**: 
+- **Current Support**: Serves regular files, including binary formats (implemented via `.bin` mapping).
+- **Autoindex Behavior (Implemented in `generateDirectoryIndex()`)**: 
   1. **Search**: If `_filepath` is a directory, look for `index.html` inside it.
-  2. **Serve**: If `index.html` exists, serve it (read-only).
-  3. **Generate**: If `index.html` is missing, **dynamically generate** an HTML listing of the directory contents (do not create a file on disk).
-- **helper needed**: `Result<bool> generateDirectoryIndex(const char *dir_path)` - should generate HTML string, set `_status_code = 200`, and provide it to `_response`.
+  2. **Serve**: If `index.html` exists, serve it (read-only) via `_body_fd`.
+  3. **Generate**: If `index.html` is missing, dynamically generate an HTML listing of the directory into the `_mem_body` buffer array (no syscall allocations or dynamic string creation).
+  4. **Safety**: Uses a `SAFE_MEMCAT` approach internally that truncates autoindex bodies preventing buffer overflow, instantly throwing a `413 Payload Too Large` to the user if buffer capacity is met.
 
 #### handlePOST()
-- **Current Support**: Writes `req.getBody()` to `_filepath`.
+- **Current Support**: Writes `req.getBody()` to `_filepath` using `O_APPEND` to update files instead of overwriting.
 - **Missing / Next steps**:
-  1. **Conflict Check**: If parent directory of `_filepath` doesn't exist, return `409 Conflict`.
+  1. **Conflict Check**: Added parent directory check using `stat()` to return `409 Conflict` if the parent path doesn't exist, and `403 Forbidden` if lacking write permissions.
   2. **Forbidden Check**: If `_filepath` is a directory, return `403 Forbidden`.
-  3. **helper needed**: `bool parentDirectoryExists(const char *path)` using `stat()`.
+  3. **Uploads vs Append**: If the subject expects clean file uploads (where uploading `image.png` twice shouldn't corrupt the file by appending), use `O_TRUNC` instead of `O_APPEND`.
+  4. **Status Codes**: Return `201 Created` for newly created files, and `200 OK` or `204 No Content` when updating/overwriting an existing file.
+  5. **Location Rules**: Prevent `POST` requests from modifying static website assets by only allowing `POST` in specific configured directories (e.g., an `upload_store`).
+  6. **CGI Processing**: If `POST` targets a CGI script (`.py`, `.php`), do NOT save the body to a file. Pass it to the script via `stdin` instead.
 
 #### handleDelete()
 - **Current Support**: Placeholder only (returns true). 
@@ -56,7 +61,9 @@ private:
 ### 1.3: Chunker Logic (As Implemented)
 The `chunker()` function in [client/Response.cpp](client/Response.cpp#L291) is the core of the streaming mechanism.
 - It first exhausts `_header` using `_head_offset`.
-- Then it reads from `_body_fd` into the personal buffer.
+- Next, it checks the `_has_mem_body` flag.
+  - If `true`, it mem-copies from the internal static `_mem_body` buffer directly.
+  - If `false`, it reads from `_body_fd` into the destination buffer.
 - It returns the number of bytes read/written to the buffer.
 - It automatically closes `_body_fd` when finished.
 
@@ -165,12 +172,15 @@ Instead of just `404 Not Found` in plain text, look for `root/errors/404.html`.
 
 ## Implementation Checklist
 - [x] Basic GET/POST logic in `Response.cpp`
+- [x] Implement Directory Listing (Autoindex)
+- [x] Implement `.bin` support (content type `BIN`).
+- [x] Implement Parent Directory check for POST (`_filepath` parent existence, permissions, 409 Conflict, 403 Forbidden)
 - [x] Chunker-based streaming
 - [x] File descriptor safety (automatic close in `reset()` and `chunker()`)
 - [x] `sendResponse()` loop properly implemented in `Client`
+- [x] Implement Directory Listing (Autoindex)
 - [ ] Implement `handleDelete()` logic (currently just a placeholder)
-- [ ] Implement Directory Listing (Autoindex)
-- [ ] Implement Parent Directory check for POST (409 Conflict)
+- [ ] Handle 42 Webserv POST scenarios (CGI stdin routing, O_TRUNC/O_APPEND decisions per upload route, `201` vs `200/204` based on file existence)
 - [ ] Implement Custom Error Handling (`Client` orchestrating `.html` pages)
 
 ---
