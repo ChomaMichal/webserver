@@ -124,6 +124,7 @@ void Response::setContentType() {
 }
 
 Result<bool> Response::handleRequest(const Request& req) {
+  // std::cout << "Response :: 127 _" << _filepath << std::endl;
   if (req.getMethod() == GET) {
     return handleGet(req);
   }
@@ -300,8 +301,6 @@ bool Response::generateDirectoryIndex(const char *dir_path, const Request &req) 
   return true;
 }
 
-
-
 const char * find_code_reason(int code) {
   switch (code) {
     case 200: return "OK";
@@ -309,6 +308,7 @@ const char * find_code_reason(int code) {
     case 204: return "No Content";
     case 301: return "Moved Permanently";
     case 302: return "Found";
+    case 307: return "TODO";
     case 400: return "Bad Request";
     case 403: return "Forbidden";
     case 404: return "Not Found";
@@ -368,8 +368,6 @@ bool Response::setHeader() {
   _header_sent = false;
   std::memcpy(_header, _http_version, std::strlen(_http_version) + 1);
 
-  if (_content_len == 0 && _status_code >= 200 && _status_code <= 299)
-    _status_code = 204;
   const char code[5] = {(const char)(_status_code / 100 + '0'),
               (const char)(_status_code / 10 % 10 + '0'),
               (const char)(_status_code % 10 + '0'), ' ', 0};
@@ -511,13 +509,17 @@ Result<bool> Response::handleDelete(const Request& req) {
   return Result<bool>(ok);
 }
 
+
 Result<bool> Response::handleError() {
   if (_body_fd != -1) {
     close(_body_fd);
     _body_fd = -1;
   }
+  // std::memset(_filepath, 0, MAX_FILE_PATH);
+  // std::strcpy(_filepath, _root_error);
+
   _content_type = PLAIN;
-  _content_len = 0;
+  _content_len = -1;
   if (!setHeader())
     return Result<bool>("Cannot set error header just send backup error");
   bool ok = true;

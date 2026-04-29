@@ -45,7 +45,8 @@ private:
   3. **Uploads vs Append**: If the subject expects clean file uploads (where uploading `image.png` twice shouldn't corrupt the file by appending), use `O_TRUNC` instead of `O_APPEND`.
   4. **Status Codes**: Return `201 Created` for newly created files, and `200 OK` or `204 No Content` when updating/overwriting an existing file.
   5. **Location Rules**: Prevent `POST` requests from modifying static website assets by only allowing `POST` in specific configured directories (e.g., an `upload_store`).
-  6. **CGI Processing**: If `POST` targets a CGI script (`.py`, `.php`), do NOT save the body to a file. Pass it to the script via `stdin` instead.
+  6. **Directory Creation**: If the target POST path requires nested directories, create them before opening the upload file.
+  7. **CGI Processing**: If `POST` targets a CGI script (`.py`, `.php`), do NOT save the body to a file. Pass it to the script via `stdin` instead.
 
 #### handleDelete()
 - **Current Support**: Placeholder only (returns true). 
@@ -69,29 +70,32 @@ The `chunker()` function in [client/Response.cpp](client/Response.cpp#L291) is t
 
 ---
 
-## Phase 2: Path Resolution Strategy (Centralized in Client)
+## Phase 2: Path Resolution Strategy (Centralized in Response)
 
-### 2.1: Client Logic for Path Resolution
-To handle complex requirements (error pages, POST/DELETE restrictions, and root switching), the **Client** should act as the authority for path resolution before calling `Response`.
+### 2.1: Response Logic for Path Resolution
+To keep file access and routing in one place, the **Response** should own path assembly and file selection, while the **Client** only passes the parsed request and configured roots.
 
-**Responsibilities of `Client::setFilePath()`:**
-1. **Method-Based Rooting**: 
-   - `GET` -> `./root`
-   - `POST/DELETE` -> `./root/tmpfiles`
+**Responsibilities of `Response::setFilePath(const Request&, const char *root)`:**
+1. **Method-Based Rooting**:
+  - `GET` -> `./root`
+  - `POST/DELETE` -> `./root/tmpfiles`
 2. **Path Sanitization**: Ensure the URI doesn't "break out" of the root (e.g., handles `..`).
-3. **Internal Error Handling**: 
-   - If `Response::handleRequest` returns an error, the `Client` checks for a custom error page (e.g., `./root/errors/404.html`).
-   - If the custom file exists, the `Client` updates `_filepath` and calls `Response::handleGet` to serve the error page as a body.
-   - If no custom page exists, fallback to `Response::handleError()` for a plain-text response.
+3. **Directory Awareness**: If the target is a directory and `index.html` is missing, generate autoindex content.
+4. **Error File Support**: Allow error-page resolution to reuse the same root-aware path logic for `_root_error`.
+
+**Client role during errors:**
+1. If `Response::handleRequest` returns an error, the `Client` checks `_root_error` for a custom file (for example `404.html`).
+2. If the custom file exists, the `Client` asks `Response` to serve it using the normal GET flow.
+3. If no custom page exists, fall back to `Response::handleError()`.
 
 ### 2.2: Response Logic for File Access
-The **Response** class should remain "dumb" regarding where files live. It only cares if the path provided by the `Client` is valid and accessible.
+The **Response** class should remain focused on file access once the `Client` provides the request and configured roots.
 
 **Responsibilities of `Response` handlers:**
 1. **Validation**: Call `stat()` on the `_filepath` provided.
 2. **Action**: `open()` for reading (GET), `open(O_CREAT)` for writing (POST), or `unlink()` (DELETE).
 3. **Feedback**: Return a specific status code if the operation fails.
-4. **handleError()**: The final fallback that generates a minimal plain-text header/body (no file I/O).
+4. **handleError()**: Try to serve an error file from `_root_error`; if it does not exist, generate a minimal plain-text header/body (no file I/O).
 
 ---
 
@@ -101,7 +105,6 @@ The **Response** class should remain "dumb" regarding where files live. It only 
 The `Client` class orchestrates the lifecycle:
 ```cpp
 private:
-  void setFilePath(); // Logic for method roots and error pages
   Stream _stream;     
   Request _request;   
   Response _response; 
@@ -162,11 +165,13 @@ Connection: close
 We need a robust way to list files:
 ```cpp
 // Suggested location: utils/directory_utils.cpp
-std::string get_html_list(const char* path); 
+const char * get_html_list(const char* path); 
 ```
 
 ### 4.3: Error Page Customization
-Instead of just `404 Not Found` in plain text, look for `root/errors/404.html`.
+Instead of just `404 Not Found` in plain text, look for `./root/errors/<code>.html` through `_root_error`.
+
+If the custom error file is missing, fall back to `Response::handleError()` and use `PLAIN` content type with a minimal plain-text body.
 
 ---
 

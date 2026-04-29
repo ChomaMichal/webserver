@@ -92,6 +92,7 @@ private:
  size_t _body_offset;
  char _mem_body[MAX_HEADER_SIZE];
  bool _has_mem_body;
+ const char * _root_error = "./root/errors/";
 
  bool setHeader();
  void setContentType();

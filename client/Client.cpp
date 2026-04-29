@@ -41,6 +41,7 @@ Result<bool> Client::recieveRequest(void) {
 }
 
 Result<bool> Client::setResponse(void) {
+  // std::cout << "Client :: 44 URI = " << _request.getRequestURI() << std::endl;
   setFilePath();
   auto request_res = _response.handleRequest(_request); // handle request #todo
   if (request_res.is_error()) {
@@ -91,12 +92,14 @@ void Client::setFilePath() {
         _response.setFilePath("");
         return ;
       }
+      // std::cout << uri[i] << std::endl;
       full_path[out_len] = uri[i];
       out_len++;
     }
   }
 
   full_path[out_len] = 0;
+  // std::cout << "Client :: 120 full path = " << full_path << std::endl;
   _response.setFilePath(full_path);
 }
 
@@ -110,7 +113,7 @@ Result<bool> Client::sendResponse(void) {
     return Result<bool>(not_ready);
   }
 
-  char temp_buffer[MAX_SEND_BUFFER];
+  char temp_buffer[MAX_SEND_BUFFER] = {};
   size_t to_send = _response.chunker(temp_buffer, MAX_SEND_BUFFER);
   if (to_send == 0) {
     bool done = true;
@@ -118,6 +121,7 @@ Result<bool> Client::sendResponse(void) {
   }
 
   setSendBuffer(temp_buffer, to_send);
+  // std::cout << temp_buffer << std::endl;
   auto err = _stream.write();
   if (err.is_error()) {
     return (Result<bool>(err.get_error()));
