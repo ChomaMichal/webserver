@@ -26,7 +26,6 @@ public:
   void printBuffer(void) const;
   char *getBuffer(void);
   void close(void);
-  char *getBuffer(void);
 
   Stream();
 
