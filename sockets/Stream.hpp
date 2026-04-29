@@ -30,9 +30,7 @@ public:
 
   Stream();
 
-private:
   size_t pl_index;
-  char *buffer;
-  struct pollfd &pl;
-  size_t loc_of_alloc;
+private:
+
 };

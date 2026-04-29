@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POST Request Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: monospace;
+        }
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            display: none;
+        }
+        .response.show {
+            display: block;
+        }
+        .error {
+            border-left-color: #f44336;
+        }
+        pre {
+            overflow-x: auto;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>POST Request Tester</h1>
+        <p>Send data to the webserver using POST requests.</p>
+        
+        <form id="postForm">
+            <div class="form-group">
+                <label for="url">Server URL:</label>
+                <input type="text" id="url" value="http://127.0.0.1:2222/test_file.txt" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="content">File Content:</label>
+                <textarea id="content" placeholder="Enter the content you want to save...">Hello from the POST form!</textarea>
+            </div>
+            
+            <button type="submit">Send POST Request</button>
+        </form>
+        
+        <div id="response" class="response">
+            <h3>Response:</h3>
+            <pre id="responseContent"></pre>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('postForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const url = document.getElementById('url').value;
+            const content = document.getElementById('content').value;
+            const responseDiv = document.getElementById('response');
+            const responseContent = document.getElementById('responseContent');
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: content,
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    }
+                });
+                
+                const text = await response.text();
+                responseContent.textContent = `Status: ${response.status} ${response.statusText}\n\nHeaders:\n${JSON.stringify([...response.headers.entries()], null, 2)}\n\nBody:\n${text}`;
+                responseDiv.classList.add('show');
+                responseDiv.classList.remove('error');
+            } catch (error) {
+                responseContent.textContent = `Error: ${error.message}`;
+                responseDiv.classList.add('show', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -40,21 +40,21 @@ public:
   void push(const T val) {
     top++;
 #ifdef DEBUG
-    assectstatic_assert(top >= size, "pushing outside of boudaries of stack");
+    assectstatic_assert(top >= size, "pushing outside of boudaries of std::stack");
 #endif
     alloc[top] = val;
   }
 
   T &peek(void) {
 #ifdef DEBUG
-    assectstatic_assert(top == -1, "peeking top of enpty stack");
+    assectstatic_assert(top == -1, "peeking top of enpty std::stack");
 #endif
     return (alloc[top]);
   }
 
   T pop(void) {
 #ifdef DEBUG
-    assectstatic_assert(top == -1, "poping top of enpty stack");
+    assectstatic_assert(top == -1, "poping top of enpty std::stack");
 #endif
     top--;
     return (alloc[top + 1]);
