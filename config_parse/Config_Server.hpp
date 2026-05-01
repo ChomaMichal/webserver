@@ -9,7 +9,7 @@ public:
   Config_Server();
   Config_Server(std::ifstream &infile);
   virtual ~Config_Server();
-  const std::pair<std::string, int> &getInterfacePort();
+  const std::pair<int, int> &getInterfacePort();
   const std::string &getServerName();
   const bool &getIsDefault();
   const std::string &getRoot();
@@ -29,9 +29,8 @@ protected:
   void init_members();
   void validate_server_members();
   bool are_fields_ready();
-  std::pair<std::string, int>
-      InterfacePort; // interface+port pair (example: 127.0.0.1, 80). Port set
-                     // to 80 by default
+  std::pair<int, int> InterfacePort; // interface+port pair (example: 127.0.0.1,
+                                     // 80). Port set to 80 by default
   std::string ServerName; // name of the server for matching. Can be NULL.
   std::vector<Config_Route> routes; // vector containing all routes.
   bool IsDefault;                   // is a default server config

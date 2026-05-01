@@ -1,25 +1,24 @@
 #include "Config_Server.hpp"
+#include "Config.hpp"
 #include "Config_Route.hpp"
 #include "utils.hpp"
-#include <iostream>
 #include <stdexcept>
 bool Config_Server::are_fields_ready() {
-  if (this->InterfacePort.first == "")
-    return false;
   if (this->UploadAllowed == true && this->UploadLocation == "")
     return false;
   // check if there's spaces inside the strings
   return true;
 }
 static void separate_interface_port_pairs(std::string line,
-                                          std::pair<std::string, int> &pair) {
+                                          std::pair<int, int> &pair) {
 
   size_t colon = line.find_first_of(':');
   if (colon == std::string::npos) {
-    pair.first = line;
+    pair.first = ip_to_int(line);
     return;
   }
-  pair.first = line.substr(0, colon);
+  std::string ip = line.substr(0, colon);
+  pair.first = ip_to_int(ip);
   std::string sport = line.substr(colon + 1, std::string::npos);
   char *endptr;
   int iport = std::strtol(sport.c_str(), &endptr, 10);
@@ -32,7 +31,8 @@ Config_Server::~Config_Server() {}
 void Config_Server::init_members() {
 
   this->InterfacePort.second = 80;
-  this->InterfacePort.first = "";
+  this->InterfacePort.first =
+      ip_to_int("0.0.0.0"); // change this to int and store that way
   this->ServerName = "";
   this->IsDefault = false;
   this->root = "root";
@@ -46,7 +46,7 @@ void Config_Server::init_members() {
   this->Redirection.second = "";
   this->UploadAllowed = false;
   this->UploadLocation = "";
-  this->MaxPayloadSize = -1;
+  this->MaxPayloadSize = 10485761;
 }
 
 Config_Server::Config_Server(std::ifstream &infile) {
@@ -65,7 +65,6 @@ Config_Server::Config_Server(std::ifstream &infile) {
         getline_stripspace(infile, line);
         this->ServerName = line;
       } else if (line == "default") {
-        getline_stripspace(infile, line);
         this->IsDefault = true;
       } else if (line == "root") {
         getline_stripspace(infile, line);
@@ -139,7 +138,7 @@ Config_Server::Config_Server(std::ifstream &infile) {
   }
 }
 
-const std::pair<std::string, int> &Config_Server::getInterfacePort() {
+const std::pair<int, int> &Config_Server::getInterfacePort() {
   return this->InterfacePort;
 }
 const std::string &Config_Server::getServerName() { return this->ServerName; }

@@ -2,7 +2,6 @@
 #include "Config_Server.hpp"
 #include "utils.hpp"
 #include <fstream>
-#include <iostream>
 #include <stdexcept>
 Config_Route::Config_Route() {}
 Config_Route::~Config_Route() {}
@@ -12,8 +11,6 @@ bool Config_Route::are_fields_ready() {
   // std::cout << "Upload: " << this->UploadLocation << ":" <<
   // this->UploadAllowed
   //           << std::endl;
-  if (this->InterfacePort.first == "")
-    return false;
   if (this->UploadAllowed == true && this->UploadLocation == "")
     return false;
   // check if there's spaces inside the strings
@@ -104,7 +101,7 @@ Config_Route::Config_Route(std::ifstream &infile, Config_Server &server) {
     }
   }
 }
-const std::pair<std::string, int> &Config_Route::getInterfacePort() {
+const std::pair<int, int> &Config_Route::getInterfacePort() {
   return this->InterfacePort;
 }
 const std::string &Config_Route::getServerName() { return this->ServerName; }
