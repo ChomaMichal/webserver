@@ -10,7 +10,7 @@ public:
   Config();
   Config(std::ifstream &infile);
   ~Config();
-  std::vector<Config_Server> &getServers();
+  const std::vector<Config_Server> &getServers() const;
   // Methods to get stuff
 private:
   std::vector<Config_Server> _servers;
