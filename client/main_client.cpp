@@ -216,7 +216,7 @@ int main(int argc, char **argv) {
         }
         const Config_Server &tmp = config.getServers().front();
         // std::cout << element->getRequest() << std::endl;
-        auto response_ret = element->setResponse();
+        auto response_ret = element->setResponse(tmp);
         if (response_ret.is_error()) {
           std::cerr << response_ret.get_error() << std::endl;
           element->close();

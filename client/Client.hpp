@@ -1,5 +1,6 @@
 #pragma once
 #include "../sockets/Sockets.hpp"
+#include "../config_parse/Config.hpp"
 #include "../sockets/Stream.hpp"
 #include "../utils/result/Result.hpp"
 #include "Request.hpp"
@@ -14,7 +15,7 @@ public:
   // recieved and parsed error is set in result
   Result<bool> recieveRequest(void);
   Result<bool> sendResponse(void);
-  Result<bool> setResponse(void); // mehras
+  Result<bool> setResponse(const Config_Server &); // mehras
   bool isResponseReady(void) const;
   bool isResponseFullySent(void) const;
   void close(void);
@@ -27,7 +28,7 @@ public:
   Client &operator=(const Client &obj) = default;
   
   private:
-  void setFilePath();
+  void setFilePath(); // TODO: remove
   Stream _stream;
   Request _request;
   Response _response;

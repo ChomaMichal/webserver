@@ -2,6 +2,7 @@
 #include "../utils/option/Option.hpp"
 #include "../utils/result/Result.hpp"
 #include "../utils/str_slice/StrSlice.hpp"
+#include "../config_parse/Config.hpp"
 #include "Request.hpp"
 #include <cstddef>
 #include <sys/stat.h>
@@ -47,7 +48,7 @@ public:
 //  std::string getStatusReason();
 
  //HANDLE STUFF
- Result<bool> handleRequest(const Request& req); //#todo
+ Result<bool> handleRequest(const Request& req, const Config_Server& in); //#todo
  Result<bool> handleGet(const Request& req);
  Result<bool> handlePost(const Request& req);
  Result<bool> handleDelete(const Request& req);

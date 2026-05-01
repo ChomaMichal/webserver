@@ -123,7 +123,7 @@ void Response::setContentType() {
   }
 }
 
-Result<bool> Response::handleRequest(const Request& req) {
+Result<bool> Response::handleRequest(const Request& req, const Config_Server& in) {
   // std::cout << "Response :: 127 _" << _filepath << std::endl;
   // TODO: setFilePath
   
