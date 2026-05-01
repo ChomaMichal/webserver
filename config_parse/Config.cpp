@@ -25,6 +25,23 @@ unsigned int ip_to_int(char *ip) {
 }
 Config::Config() {}
 Config::~Config() {}
+void Config::Populate(std::ifstream &infile) {
+  try {
+    while (!infile.eof()) {
+      std::string line;
+      getline_stripspace(infile, line);
+      if (line != "server:" && !infile.eof()) {
+        throw(std::runtime_error(
+            "Invalid Config File: invalid server directive"));
+      }
+      if (!infile.eof())
+        this->_servers.push_back(Config_Server(infile));
+      std::cout << "hi!" << std::endl;
+    }
+  } catch (std::exception &e) {
+    throw e;
+  }
+}
 Config::Config(std::ifstream &infile) {
   try {
     while (!infile.eof()) {
@@ -39,7 +56,7 @@ Config::Config(std::ifstream &infile) {
       std::cout << "hi!" << std::endl;
     }
   } catch (std::exception &e) {
-    throw;
+    throw e;
   }
 }
 static bool isStrSliceEqualtoString(const std::string &string,

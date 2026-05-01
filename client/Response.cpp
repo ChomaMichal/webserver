@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <dirent.h>
 
-Response::Response() {
+Response::Response() : _body_fd(-1) {
   reset();
 }
 
@@ -59,13 +59,54 @@ void Response::reset() {
   
 }
 
-void Response::setFilePath(const char *path) {
-  if (path == NULL || !*path) {
-    _filepath[0] = 0;
-    return;
+void Response::setFilePath(const Request& req, const Config_Server& serv) {
+  std::cout << "response :: 63 getROOT = " << serv.getRoot() << std::endl;
+  const char * root = serv.getRoot().c_str();
+  if (req.getMethod() != GET)
+    root = serv.getUploadLocation().c_str();
+  StrSlice uri = req.getRequestURI();
+  char full_path[MAX_FILE_PATH];
+  size_t out_len = 0;
+  size_t root_len = std::strlen(root);
+
+  std::memcpy(full_path, root, root_len);
+  out_len = root_len;
+
+  if (out_len > 0 && full_path[out_len - 1] != '/') {
+    full_path[out_len] = '/';
+    out_len++;
   }
-  std::strncpy(_filepath, path, MAX_FILE_PATH - 1);
-  _filepath[MAX_FILE_PATH - 1] = 0;
+
+  size_t i = 0;
+  if (uri.getLen() > 0 && uri[0] == '/') {
+    i = 1;
+  }
+
+
+  if (i >= uri.getLen() && req.getMethod() == GET) { // only "/" or "" in URI
+    const char *index_file = "index.html";
+    size_t n = std::strlen(index_file);
+    if (out_len + n >= MAX_FILE_PATH) {
+      std::memcpy(_filepath, "", 1);
+      return ;
+    }
+    std::memcpy(full_path + out_len, index_file, n);
+    out_len += n;
+  }
+  else {
+    for (; i < uri.getLen(); ++i) {
+      if (out_len + 1 >= MAX_FILE_PATH) {
+        std::memcpy(_filepath, "", 1);
+        return ;
+      }
+      // std::cout << uri[i] << std::endl;
+      full_path[out_len] = uri[i];
+      out_len++;
+    }
+  }
+
+  full_path[out_len] = 0;
+  std::memcpy(_filepath, full_path, out_len + 1);
 }
 
 void Response::setContentType() {
@@ -123,10 +164,10 @@ void Response::setContentType() {
   }
 }
 
-Result<bool> Response::handleRequest(const Request& req, const Config_Server& in) {
+Result<bool> Response::handleRequest(const Request& req, const Config_Server& serv) {
   // std::cout << "Response :: 127 _" << _filepath << std::endl;
   // TODO: setFilePath
-  
+  setFilePath(req, serv);
   if (req.getMethod() == GET) {
     return handleGet(req);
   }

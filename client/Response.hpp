@@ -56,7 +56,7 @@ public:
 
  const char *getcHeader() const;
  bool getHeaderSent() const;
- void setFilePath(const char *path);
+ void setFilePath(const Request& req, const Config_Server& serv);
 
  size_t chunker(char *tmp_buffer, size_t max_len);
 

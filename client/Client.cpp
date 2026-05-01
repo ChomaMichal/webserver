@@ -42,7 +42,6 @@ Result<bool> Client::recieveRequest(void) {
 
 Result<bool> Client::setResponse(const Config_Server& in) {
   // std::cout << "Client :: 44 URI = " << _request.getRequestURI() << std::endl;
-  setFilePath(); // TODO: remove
   auto request_res = _response.handleRequest(_request, in); // handle request #todo
   if (request_res.is_error()) {
     return Result<bool>(request_res.get_error());
@@ -51,56 +50,6 @@ Result<bool> Client::setResponse(const Config_Server& in) {
   _response_ready = true;
   bool ret = true;
   return (Result<bool>(ret));
-}
-
-void Client::setFilePath() {
-  const char * root = _root;
-  if (_request.getMethod() != GET)
-    root = _root_tmp;
-  StrSlice uri = _request.getRequestURI();
-  char full_path[MAX_FILE_PATH];
-  size_t out_len = 0;
-  size_t root_len = std::strlen(root);
-
-  std::memcpy(full_path, root, root_len);
-  out_len = root_len;
-
-  if (out_len > 0 && full_path[out_len - 1] != '/') {
-    full_path[out_len] = '/';
-    out_len++;
-  }
-
-  size_t i = 0;
-  if (uri.getLen() > 0 && uri[0] == '/') {
-    i = 1;
-  }
-
-
-  if (i >= uri.getLen() && _request.getMethod() == GET) { // only "/" or "" in URI
-    const char *index_file = "index.html";
-    size_t n = std::strlen(index_file);
-    if (out_len + n >= MAX_FILE_PATH) {
-      _response.setFilePath("");
-      return ;
-    }
-    std::memcpy(full_path + out_len, index_file, n);
-    out_len += n;
-  }
-  else {
-    for (; i < uri.getLen(); ++i) {
-      if (out_len + 1 >= MAX_FILE_PATH) {
-        _response.setFilePath("");
-        return ;
-      }
-      // std::cout << uri[i] << std::endl;
-      full_path[out_len] = uri[i];
-      out_len++;
-    }
-  }
-
-  full_path[out_len] = 0;
-  // std::cout << "Client :: 120 full path = " << full_path << std::endl;
-  _response.setFilePath(full_path);
 }
 
 Result<bool> Client::sendResponse(void) {

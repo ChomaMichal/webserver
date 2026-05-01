@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
       return 1;
     }
 
-    Config config(config_file);
+    config.Populate(config_file);
     config_file.close();
 
     const std::vector<Config_Server> &servers = config.getServers();
@@ -214,7 +214,9 @@ int main(int argc, char **argv) {
           element++;
           continue;
         }
-        const Config_Server &tmp = config.getServers().front();
+        auto tmp2 = config.getServers();
+        const Config_Server tmp = tmp2.front();
+        std::cout << "main :: 219 :: tmp_getroot = " << tmp.getRoot();
         // std::cout << element->getRequest() << std::endl;
         auto response_ret = element->setResponse(tmp);
         if (response_ret.is_error()) {

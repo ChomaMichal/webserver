@@ -28,11 +28,9 @@ public:
   Client &operator=(const Client &obj) = default;
   
   private:
-  void setFilePath(); // TODO: remove
   Stream _stream;
   Request _request;
   Response _response;
-  const char * _root = "./root"; //alv
-  const char * _root_tmp = "./root/tmpfiles";
+
   bool _response_ready;
 };
