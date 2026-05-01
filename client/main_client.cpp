@@ -18,7 +18,7 @@
 #include "../config_parse/Config_Server.hpp"
 #include <fstream>
 
-void print_server_values(Config_Server &server, int server_index) {
+void print_server_values(const Config_Server &server, int server_index) {
   std::cout << "\n========== SERVER " << server_index
             << " ==========" << std::endl;
 
@@ -64,7 +64,7 @@ void print_server_values(Config_Server &server, int server_index) {
             << std::endl;
 }
 
-void print_route_values(Config_Route &route, int route_index) {
+void print_route_values(const Config_Route &route, int route_index) {
   std::cout << "\n--- ROUTE " << route_index << " ---" << std::endl;
 
   // Location (route-specific)
@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
     Config config(config_file);
     config_file.close();
 
-    std::vector<Config_Server> &servers = config.getServers();
+    const std::vector<Config_Server> &servers = config.getServers();
 
     std::cout << "\n╔════════════════════════════════════╗" << std::endl;
     std::cout << "║  CONFIG PARSE TEST - ALL VALUES   ║" << std::endl;
@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
     for (size_t i = 0; i < servers.size(); ++i) {
       print_server_values(servers[i], i);
 
-      std::vector<Config_Route> &routes = servers[i].getRoutes();
+      const std::vector<Config_Route> &routes = servers[i].getRoutes();
       std::cout << "\nRoutes in Server " << i << ": " << routes.size()
                 << std::endl;
 
@@ -214,7 +214,7 @@ int main(int argc, char **argv) {
           element++;
           continue;
         }
-        Config_Server &tmp = config.getServers().front();
+        const Config_Server &tmp = config.getServers().front();
         // std::cout << element->getRequest() << std::endl;
         auto response_ret = element->setResponse(tmp);
         if (response_ret.is_error()) {

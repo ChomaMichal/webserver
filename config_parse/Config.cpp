@@ -17,4 +17,4 @@ Config::Config(std::ifstream &infile) {
     throw;
   }
 }
-std::vector<Config_Server> &Config::getServers() { return this->_servers; }
+const std::vector<Config_Server> &Config::getServers() const { return this->_servers; }
