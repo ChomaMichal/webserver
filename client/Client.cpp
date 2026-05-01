@@ -40,10 +40,10 @@ Result<bool> Client::recieveRequest(void) {
   return (Result<bool>(rt));
 }
 
-Result<bool> Client::setResponse(void) {
+Result<bool> Client::setResponse(const Config_Server& in) {
   // std::cout << "Client :: 44 URI = " << _request.getRequestURI() << std::endl;
-  setFilePath();
-  auto request_res = _response.handleRequest(_request); // handle request #todo
+  setFilePath(); // TODO: remove
+  auto request_res = _response.handleRequest(_request, in); // handle request #todo
   if (request_res.is_error()) {
     return Result<bool>(request_res.get_error());
   }

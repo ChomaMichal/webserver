@@ -110,7 +110,7 @@ int main(int argc, char **argv) {
     std::cerr << "Usage: " << argv[0] << " <config_file>" << std::endl;
     return 1;
   }
-
+  Config config;
   try {
     std::ifstream config_file(argv[1]);
     if (!config_file.is_open()) {
@@ -145,7 +145,6 @@ int main(int argc, char **argv) {
     std::cout << "Config parsing completed successfully!" << std::endl;
     std::cout << "════════════════════════════════════\n" << std::endl;
 
-    return 0;
   } catch (const std::exception &e) {
     std::cerr << "Error parsing config: " << e.what() << std::endl;
     return 1;
@@ -156,6 +155,7 @@ int main(int argc, char **argv) {
     std::cerr << "Unknown error occurred during parsing" << std::endl;
     return 1;
   }
+
 
   Networking::init();
   auto lis = Listener::connect(PORT);
@@ -214,8 +214,9 @@ int main(int argc, char **argv) {
           element++;
           continue;
         }
+        Config_Server &tmp = config.getServers().front();
         // std::cout << element->getRequest() << std::endl;
-        auto response_ret = element->setResponse();
+        auto response_ret = element->setResponse(tmp);
         if (response_ret.is_error()) {
           std::cerr << response_ret.get_error() << std::endl;
           element->close();
