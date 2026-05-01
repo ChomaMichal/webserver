@@ -101,33 +101,33 @@ Config_Route::Config_Route(std::ifstream &infile, Config_Server &server) {
     }
   }
 }
-const std::pair<int, int> &Config_Route::getInterfacePort() {
+const std::pair<int, int> &Config_Route::getInterfacePort() const {
   return this->InterfacePort;
 }
-const std::string &Config_Route::getServerName() { return this->ServerName; }
-const bool &Config_Route::getIsDefault() { return this->IsDefault; }
-const std::string &Config_Route::getRoot() { return this->root; }
-const std::string &Config_Route::getNotFound() { return this->NotFound; }
-const std::string &Config_Route::getUnauthorized() {
+const std::string &Config_Route::getServerName() const { return this->ServerName; }
+const bool &Config_Route::getIsDefault() const { return this->IsDefault; }
+const std::string &Config_Route::getRoot() const { return this->root; }
+const std::string &Config_Route::getNotFound() const { return this->NotFound; }
+const std::string &Config_Route::getUnauthorized() const {
   return this->Unauthorized;
 }
-const std::string &Config_Route::getConflict() { return this->Conflict; }
-const std::string &Config_Route::getMethodNotAllowed() {
+const std::string &Config_Route::getConflict() const { return this->Conflict; }
+const std::string &Config_Route::getMethodNotAllowed() const {
   return this->MethodNotAllowed;
 }
-const bool &Config_Route::getAutoIndex() { return this->AutoIndex; }
-const std::string &Config_Route::getDefaultIndex() {
+const bool &Config_Route::getAutoIndex() const { return this->AutoIndex; }
+const std::string &Config_Route::getDefaultIndex() const {
   return this->DefaultIndex;
 }
-const std::pair<int, std::string> &Config_Route::getRedirection() {
+const std::pair<int, std::string> &Config_Route::getRedirection() const {
   return this->Redirection;
 }
-const bool &Config_Route::getUploadAllowed() { return this->UploadAllowed; }
-const std::string &Config_Route::getUploadLocation() {
+const bool &Config_Route::getUploadAllowed() const { return this->UploadAllowed; }
+const std::string &Config_Route::getUploadLocation() const {
   return this->UploadLocation;
 }
-const ssize_t &Config_Route::getMaxPayloadSize() {
+const ssize_t &Config_Route::getMaxPayloadSize() const {
   return this->MaxPayloadSize;
 }
-std::vector<Config_Route> &Config_Route::getRoutes() { return this->routes; }
-std::string &Config_Route::getLocation() { return this->Location; }
+const std::vector<Config_Route> &Config_Route::getRoutes() const { return this->routes; }
+const std::string &Config_Route::getLocation() const { return this->Location; }

@@ -8,6 +8,7 @@ BUILD_DIR = build
 UTILS_DIR = utils
 SOCKETS_DIR = sockets
 CLIENT_DIR = client
+CONFIG_DIR = config_parse
 TMP_DIR = root/tmpfiles
 
 # Output files
@@ -17,12 +18,14 @@ CLIENT_BIN = $(BUILD_DIR)/test_client
 CLIENT_REQUEST_BIN = $(BUILD_DIR)/test_request
 
 # Source files
+
 UTILS_SRCS = $(UTILS_DIR)/main.cpp
 SOCKETS_MAIN = $(SOCKETS_DIR)/main.cpp
 SOCKETS_SRCS = $(SOCKETS_DIR)/Listener.cpp $(SOCKETS_DIR)/Networking.cpp $(SOCKETS_DIR)/Stream.cpp
+CONFIG_SRCS = $(CONFIG_DIR)/Config.cpp $(CONFIG_DIR)/Config_Server.cpp $(CONFIG_DIR)/Config_Route.cpp $(CONFIG_DIR)/utils.cpp
 STR_SLICE_SRC = $(UTILS_DIR)/str_slice/StrSlice.cpp
-CLIENT_SRCS = $(CLIENT_DIR)/main_client.cpp $(CLIENT_DIR)/Client.cpp $(CLIENT_DIR)/Request.cpp $(CLIENT_DIR)/Response.cpp $(SOCKETS_SRCS) $(STR_SLICE_SRC)
-REQUEST_SRCS = $(CLIENT_DIR)/main_request.cpp $(CLIENT_DIR)/Client.cpp $(CLIENT_DIR)/Request.cpp $(CLIENT_DIR)/Response.cpp $(SOCKETS_SRCS) $(STR_SLICE_SRC)
+CLIENT_SRCS = $(CLIENT_DIR)/main_client.cpp $(CLIENT_DIR)/Client.cpp $(CLIENT_DIR)/Request.cpp $(CLIENT_DIR)/Response.cpp $(SOCKETS_SRCS) $(STR_SLICE_SRC) $(CONFIG_SRCS)
+REQUEST_SRCS = $(CLIENT_DIR)/main_request.cpp $(CLIENT_DIR)/Client.cpp $(CLIENT_DIR)/Request.cpp $(CLIENT_DIR)/Response.cpp $(SOCKETS_SRCS) $(STR_SLICE_SRC) $(CONFIG_SRCS)
 
 # PHONY targets
 .PHONY: all clean clean_all utils sockets client make_client test_utils test_sockets test_client test_request request help

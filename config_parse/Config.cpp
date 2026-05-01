@@ -82,4 +82,4 @@ Config_Server &Config::match_server(int port, int ip, StrSlice host) {
   }
   return *selectedserver;
 }
-std::vector<Config_Server> &Config::getServers() { return this->_servers; }
+const std::vector<Config_Server> &Config::getServers() const { return this->_servers; }

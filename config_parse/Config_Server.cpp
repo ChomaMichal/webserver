@@ -138,32 +138,32 @@ Config_Server::Config_Server(std::ifstream &infile) {
   }
 }
 
-const std::pair<int, int> &Config_Server::getInterfacePort() {
+const std::pair<int, int> &Config_Server::getInterfacePort() const {
   return this->InterfacePort;
 }
-const std::string &Config_Server::getServerName() { return this->ServerName; }
-const bool &Config_Server::getIsDefault() { return this->IsDefault; }
-const std::string &Config_Server::getNotFound() { return this->NotFound; }
-const std::string &Config_Server::getUnauthorized() {
+const std::string &Config_Server::getServerName() const { return this->ServerName; }
+const bool &Config_Server::getIsDefault() const { return this->IsDefault; }
+const std::string &Config_Server::getNotFound() const { return this->NotFound; }
+const std::string &Config_Server::getUnauthorized() const {
   return this->Unauthorized;
 }
-const std::string &Config_Server::getConflict() { return this->Conflict; }
-const std::string &Config_Server::getMethodNotAllowed() {
+const std::string &Config_Server::getConflict() const { return this->Conflict; }
+const std::string &Config_Server::getMethodNotAllowed() const {
   return this->MethodNotAllowed;
 }
-const bool &Config_Server::getAutoIndex() { return this->AutoIndex; }
-const std::string &Config_Server::getDefaultIndex() {
+const bool &Config_Server::getAutoIndex() const { return this->AutoIndex; }
+const std::string &Config_Server::getDefaultIndex() const {
   return this->DefaultIndex;
 }
-const std::pair<int, std::string> &Config_Server::getRedirection() {
+const std::pair<int, std::string> &Config_Server::getRedirection() const {
   return this->Redirection;
 }
-const bool &Config_Server::getUploadAllowed() { return this->UploadAllowed; }
-const std::string &Config_Server::getUploadLocation() {
+const bool &Config_Server::getUploadAllowed() const { return this->UploadAllowed; }
+const std::string &Config_Server::getUploadLocation() const {
   return this->UploadLocation;
 }
-const ssize_t &Config_Server::getMaxPayloadSize() {
+const ssize_t &Config_Server::getMaxPayloadSize() const {
   return this->MaxPayloadSize;
 }
-const std::string &Config_Server::getRoot() { return this->root; }
-std::vector<Config_Route> &Config_Server::getRoutes() { return this->routes; }
+const std::string &Config_Server::getRoot() const { return this->root; }
+const std::vector<Config_Route> &Config_Server::getRoutes() const { return this->routes; }

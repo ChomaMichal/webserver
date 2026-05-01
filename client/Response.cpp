@@ -125,6 +125,8 @@ void Response::setContentType() {
 
 Result<bool> Response::handleRequest(const Request& req) {
   // std::cout << "Response :: 127 _" << _filepath << std::endl;
+  // TODO: setFilePath
+  
   if (req.getMethod() == GET) {
     return handleGet(req);
   }

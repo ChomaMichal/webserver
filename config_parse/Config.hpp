@@ -11,7 +11,7 @@ public:
   Config();
   Config(std::ifstream &infile);
   ~Config();
-  std::vector<Config_Server> &getServers();
+  const std::vector<Config_Server> &getServers() const;
   Config_Server &match_server(int ip, int port, StrSlice host);
   // Methods to get stuff
 private:

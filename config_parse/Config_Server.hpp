@@ -9,21 +9,21 @@ public:
   Config_Server();
   Config_Server(std::ifstream &infile);
   virtual ~Config_Server();
-  const std::pair<int, int> &getInterfacePort();
-  const std::string &getServerName();
-  const bool &getIsDefault();
-  const std::string &getRoot();
-  const std::string &getNotFound();
-  const std::string &getUnauthorized();
-  const std::string &getConflict();
-  const std::string &getMethodNotAllowed();
-  const bool &getAutoIndex();
-  const std::string &getDefaultIndex();
-  const std::pair<int, std::string> &getRedirection();
-  const bool &getUploadAllowed();
-  const std::string &getUploadLocation();
-  const ssize_t &getMaxPayloadSize();
-  std::vector<Config_Route> &getRoutes();
+  const std::pair<int, int> &getInterfacePort() const;
+  const std::string &getServerName() const;
+  const bool &getIsDefault() const;
+  const std::string &getRoot() const;
+  const std::string &getNotFound() const;
+  const std::string &getUnauthorized() const;
+  const std::string &getConflict() const;
+  const std::string &getMethodNotAllowed() const;
+  const bool &getAutoIndex() const;
+  const std::string &getDefaultIndex() const;
+  const std::pair<int, std::string> &getRedirection() const;
+  const bool &getUploadAllowed() const;
+  const std::string &getUploadLocation() const;
+  const ssize_t &getMaxPayloadSize() const;
+  const std::vector<Config_Route> &getRoutes() const;
 
 protected:
   void init_members();
