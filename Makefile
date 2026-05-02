@@ -16,19 +16,21 @@ UTILS_BIN = $(BUILD_DIR)/test_utils
 SOCKETS_BIN = $(BUILD_DIR)/test_sockets
 CLIENT_BIN = $(BUILD_DIR)/test_client
 CLIENT_REQUEST_BIN = $(BUILD_DIR)/test_request
+CONFIG_BIN = $(BUILD_DIR)/test_config
 
 # Source files
 
 UTILS_SRCS = $(UTILS_DIR)/main.cpp
 SOCKETS_MAIN = $(SOCKETS_DIR)/main.cpp
 SOCKETS_SRCS = $(SOCKETS_DIR)/Listener.cpp $(SOCKETS_DIR)/Networking.cpp $(SOCKETS_DIR)/Stream.cpp
-CONFIG_SRCS = $(CONFIG_DIR)/Config.cpp $(CONFIG_DIR)/Config_Server.cpp $(CONFIG_DIR)/Config_Route.cpp $(CONFIG_DIR)/utils.cpp
+CONFIG_MAIN = $(CONFIG_DIR)/main.cpp $(STR_SLICE_SRC)
+CONFIG_SRCS = $(CONFIG_DIR)/Config.cpp $(CONFIG_DIR)/Config_Server.cpp $(CONFIG_DIR)/Config_Route.cpp $(CONFIG_DIR)/utils.cpp 
 STR_SLICE_SRC = $(UTILS_DIR)/str_slice/StrSlice.cpp
 CLIENT_SRCS = $(CLIENT_DIR)/main_client.cpp $(CLIENT_DIR)/Client.cpp $(CLIENT_DIR)/Request.cpp $(CLIENT_DIR)/Response.cpp $(SOCKETS_SRCS) $(STR_SLICE_SRC) $(CONFIG_SRCS)
 REQUEST_SRCS = $(CLIENT_DIR)/main_request.cpp $(CLIENT_DIR)/Client.cpp $(CLIENT_DIR)/Request.cpp $(CLIENT_DIR)/Response.cpp $(SOCKETS_SRCS) $(STR_SLICE_SRC) $(CONFIG_SRCS)
 
 # PHONY targets
-.PHONY: all clean clean_all utils sockets client make_client test_utils test_sockets test_client test_request request help
+.PHONY: all clean fclean utils sockets client make_client test_utils test_sockets test_client test_request request help
 
 # Default target
 all: utils sockets client
@@ -94,6 +96,19 @@ test_client: $(CLIENT_BIN)
 	@./$(CLIENT_BIN)
 	@echo "✓ Client tests passed"
 
+# Config parser test
+config: $(BUILD_DIR) $(CONFIG_BIN)
+
+$(CONFIG_BIN): $(CONFIG_MAIN) $(CONFIG_SRCS) $(CONFIG_DIR)/Config.hpp | $(BUILD_DIR)
+	@echo "Building config parser test..."
+	$(CXX) $(CXXFLAGS) -o $@ $(CONFIG_MAIN) $(CONFIG_SRCS) $(LDFLAGS)
+	@echo "✓ Config parser test built"
+
+test_config: $(CONFIG_BIN)
+	@echo "Testing config parser..."
+	@./$(CONFIG_BIN) config_files/simple.conf
+	@echo "✓ Config parser tests passed"
+
 # Request parser test
 request: $(BUILD_DIR) $(CLIENT_REQUEST_BIN)
 
@@ -113,7 +128,7 @@ clean:
 	@rm -rf $(BUILD_DIR)
 	@echo "✓ Clean complete"
 
-clean_all: clean
+fclean: clean
 	@find . -name "*.o" -delete
 	@find . -name "a.out" -delete
 	@rm -rf $(TMP_DIR)/*

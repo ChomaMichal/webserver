@@ -56,7 +56,8 @@ void Response::reset() {
   _content_len = 0;
   _body_fd = -1;
   _body_offset = 0;
-  
+  _root = NULL;
+  _error = NULL;
 }
 
 void Response::setFilePath(const Request& req, const Config_Server& serv) {
@@ -79,27 +80,14 @@ void Response::setFilePath(const Request& req, const Config_Server& serv) {
     i = 1;
   }
 
-
-  if (i >= uri.getLen() && req.getMethod() == GET) { // only "/" or "" in URI
-    const char *index_file = "index.html";
-    size_t n = std::strlen(index_file);
-    if (out_len + n >= MAX_FILE_PATH) {
+  for (; i < uri.getLen(); ++i) {
+    if (out_len + 1 >= MAX_FILE_PATH) {
       std::memcpy(_filepath, "", 1);
       return ;
     }
-    std::memcpy(full_path + out_len, index_file, n);
-    out_len += n;
-  }
-  else {
-    for (; i < uri.getLen(); ++i) {
-      if (out_len + 1 >= MAX_FILE_PATH) {
-        std::memcpy(_filepath, "", 1);
-        return ;
-      }
-      // std::cout << uri[i] << std::endl;
-      full_path[out_len] = uri[i];
-      out_len++;
-    }
+    // std::cout << uri[i] << std::endl;
+    full_path[out_len] = uri[i];
+    out_len++;
   }
 
   full_path[out_len] = 0;
@@ -161,10 +149,37 @@ void Response::setContentType() {
   }
 }
 
+const char * Response::matchRouteToRoot(const Request& req, const std::vector<Config_Route>& routes) {
+  // TODO: TEST
+  char parent_buff[MAX_FILE_PATH] = {};
+  for (auto idx = routes.begin(); idx != routes.end(); idx++) {
+    auto i = 0U;
+    for (i = 0U; i < idx->getLocation().size(); ++i) {
+      if (i >= req.getRequestURI().getLen() - 1) {
+        break ;
+      }
+      parent_buff[i] = req.getRequestURI()[i];
+    }
+    if (i >= req.getRequestURI().getLen() - 1)
+      continue ;
+    if (!req.getRequestURI()[i] && req.getRequestURI()[i] != '/')
+      continue;
+    parent_buff[i] = 0;
+    if (!std::strncmp(parent_buff, idx->getLocation().c_str(), i))
+      return idx->getRoot().c_str();
+  }
+  return (NULL);
+}
+
 Result<bool> Response::handleRequest(const Request& req, const Config_Server& serv) {
   // std::cout << "Response :: 127 _" << _filepath << std::endl;
   // TODO: setFilePath
+  const std::vector<Config_Route>& routes = serv.getRoutes();
+  _root = matchRouteToRoot(req, routes);
+  if (!_root)
+    _root = serv.getRoot().c_str();
   setFilePath(req, serv);
+  
   if (req.getMethod() == GET) {
     return handleGet(req, serv);
   }
@@ -178,7 +193,7 @@ Result<bool> Response::handleRequest(const Request& req, const Config_Server& se
   return handleError(serv);
 }
 
-bool Response::file_stat_read(struct stat& _file_stat, const Request &req) {
+bool Response::fileStatRead(struct stat& _file_stat, const Request &req, const Config_Server& serv) {
   errno = 0;
   if (stat(_filepath, &_file_stat) == -1) {
     if (errno == ENOENT) {
@@ -208,14 +223,15 @@ bool Response::file_stat_read(struct stat& _file_stat, const Request &req) {
     if (std::strlen(index_path) + std::strlen(index_file) < MAX_FILE_PATH) {
       std::strcat(index_path, index_file);
       struct stat idx_stat;
-      if (stat(index_path, &idx_stat) == 0 && S_ISREG(idx_stat.st_mode) && access(index_path, R_OK) == 0) {
+      if (stat(index_path, &idx_stat) == 0 && S_ISLNK(idx_stat.st_mode) && S_ISREG(idx_stat.st_mode) && access(index_path, R_OK) == 0) {
         std::strcpy(_filepath, index_path);
         _file_stat = idx_stat;
-      } else {
+      } else if (serv.getAutoIndex()) {
         return generateDirectoryIndex(_filepath, req);
       }
+        return (_status_code = 403, false);
     } else {
-      return generateDirectoryIndex(_filepath, req);
+      return (_status_code = 500, false);
     }
   }
 
@@ -456,7 +472,7 @@ bool Response::setHeader(const Config_Server& serv) {
 
 Result<bool> Response::handleGet(const Request& req, const Config_Server& serv) {
   struct stat _file_stat;
-  if (!file_stat_read(_file_stat, req))
+  if (!fileStatRead(_file_stat, req, serv))
     return (handleError(serv));
   if (!setHeader(serv))
     return Result<bool>("Cannot set head shit has hit the fan");
