@@ -86,6 +86,9 @@ void print_route_values(const Config_Route &route, int route_index) {
 
   std::cout << "Max Payload Size: " << route.getMaxPayloadSize() << " bytes"
             << std::endl;
+
+  std::cout << "CGI Python path: " << route.getpy_cgi_route() << std::endl;
+  std::cout << "CGI PHP path: " << route.getphp_cgi_route() << std::endl;
 }
 
 int main(int argc, char **argv) {
