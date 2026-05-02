@@ -31,6 +31,8 @@ Config_Route::Config_Route(std::ifstream &infile, Config_Server &server) {
   this->UploadAllowed = server.getUploadAllowed();
   this->UploadLocation = server.getUploadLocation();
   this->MaxPayloadSize = server.getMaxPayloadSize();
+  this->py_cgi_route = "";
+  this->php_cgi_route = "";
   std::string line;
   getline_stripspace(infile, line);
   this->Location = line;
@@ -90,6 +92,17 @@ Config_Route::Config_Route(std::ifstream &infile, Config_Server &server) {
     } else if (line == "return") {
       getline_stripspace(infile, line);
       get_redirection_pair(line, this->Redirection);
+    } else if (line == "cgi_extension") {
+      getline_stripspace(infile, line, " \n");
+      if (line == ".py") {
+        getline_stripspace(infile, line);
+        this->py_cgi_route = line;
+      } else if (line == ".php") {
+        getline_stripspace(infile, line);
+        this->php_cgi_route = line;
+      } else {
+        throw std::runtime_error("Invalid Config File: invalid cgi directive");
+      }
     } else if (line == "}") {
       if (are_fields_ready())
         return;
@@ -104,7 +117,9 @@ Config_Route::Config_Route(std::ifstream &infile, Config_Server &server) {
 const std::pair<int, int> &Config_Route::getInterfacePort() const {
   return this->InterfacePort;
 }
-const std::string &Config_Route::getServerName() const { return this->ServerName; }
+const std::string &Config_Route::getServerName() const {
+  return this->ServerName;
+}
 const bool &Config_Route::getIsDefault() const { return this->IsDefault; }
 const std::string &Config_Route::getRoot() const { return this->root; }
 const std::string &Config_Route::getNotFound() const { return this->NotFound; }
@@ -122,12 +137,22 @@ const std::string &Config_Route::getDefaultIndex() const {
 const std::pair<int, std::string> &Config_Route::getRedirection() const {
   return this->Redirection;
 }
-const bool &Config_Route::getUploadAllowed() const { return this->UploadAllowed; }
+const bool &Config_Route::getUploadAllowed() const {
+  return this->UploadAllowed;
+}
 const std::string &Config_Route::getUploadLocation() const {
   return this->UploadLocation;
 }
 const ssize_t &Config_Route::getMaxPayloadSize() const {
   return this->MaxPayloadSize;
 }
-const std::vector<Config_Route> &Config_Route::getRoutes() const { return this->routes; }
+const std::vector<Config_Route> &Config_Route::getRoutes() const {
+  return this->routes;
+}
 const std::string &Config_Route::getLocation() const { return this->Location; }
+const std::string &Config_Route::getpy_cgi_route() const {
+  return this->py_cgi_route;
+}
+const std::string &Config_Route::getphp_cgi_route() const {
+  return this->php_cgi_route;
+}

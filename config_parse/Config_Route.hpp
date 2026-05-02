@@ -25,6 +25,8 @@ public:
   const ssize_t &getMaxPayloadSize() const;
   const std::vector<Config_Route> &getRoutes() const;
   const std::string &getLocation() const;
+  const std::string &getpy_cgi_route() const;
+  const std::string &getphp_cgi_route() const;
 
 private:
   bool are_fields_ready();
@@ -56,4 +58,6 @@ private:
   std::string UploadLocation; // if upload_allowed == false, this is null
   ssize_t MaxPayloadSize;     // if -1, no payload max
   std::string Location;
+  std::string py_cgi_route;
+  std::string php_cgi_route;
 };
