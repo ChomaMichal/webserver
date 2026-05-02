@@ -12,7 +12,7 @@ public:
   Config(std::ifstream &infile);
   ~Config();
   const std::vector<Config_Server> &getServers() const;
-  Config_Server &match_server(int ip, int port, StrSlice host);
+  const Config_Server &match_server(int &ip, int &port, StrSlice &host) const;
   void Populate(std::ifstream &infile);
   // Methods to get stuff
 private:
