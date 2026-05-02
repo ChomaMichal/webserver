@@ -12,6 +12,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
+#include <signal.h>
 
 #include "../config_parse/Config.hpp"
 #include "../config_parse/Config_Route.hpp"
@@ -102,6 +103,13 @@ void print_route_values(const Config_Route &route, int route_index) {
             << std::endl;
 }
 
+bool g_exit = 0;
+
+void handleSigInt(int sig) {
+  (void)sig;
+  g_exit = 1;
+}
+
 const int PORT = 2222;
 const int BUFFER_SIZE = 4096;
 
@@ -157,6 +165,7 @@ int main(int argc, char **argv) {
   }
 
 
+  signal(SIGINT, handleSigInt);
   Networking::init();
   auto lis = Listener::connect(PORT);
   if (lis.is_error()) {
@@ -168,6 +177,9 @@ int main(int argc, char **argv) {
             << std::endl;
   while (1) {
     // std::cout << "update_fd_status == 0 :: 31" << std::endl;
+    if (g_exit == 1) {
+      break;
+    }
     if (Networking::update_fd_status() == 0) {
       sleep(1);
       continue;
@@ -214,10 +226,10 @@ int main(int argc, char **argv) {
           element++;
           continue;
         }
-        auto tmp2 = config.getServers();
-        const Config_Server tmp = tmp2.front();
-        std::cout << "main :: 219 :: tmp_getroot = " << tmp.getRoot();
-        // std::cout << element->getRequest() << std::endl;
+        int addr = INADDR_ANY;
+        int port = PORT;
+        const Config_Server tmp = config.match_server(addr, port, element->getRequest().getHost());
+        std::cout << "main :: 219 :: tmp_getroot = " << tmp.getRoot() << std::endl;
         auto response_ret = element->setResponse(tmp);
         if (response_ret.is_error()) {
           std::cerr << response_ret.get_error() << std::endl;

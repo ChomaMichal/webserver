@@ -222,3 +222,61 @@ Content-Length: 0\r\n
 Connection: close\r\n
 \r\n
 ```
+
+## CGI Detection & Environment Variables Workflow
+
+**Goal:** Detect requests that target CGI scripts by extension and produce the POSIX-style environment array the CGI process expects, without implementing execution details here.
+
+1) Detection rules
+- Default CGI extensions: `.cgi`, `.pl`, `.py`, `.php` (configurable per-server block).
+- Detection occurs after URI normalization and path resolution (same place `Response::setFilePath` or `Client::setFilePath` finalizes `_filepath`).
+- A request is marked for CGI handling when the resolved target filename has a configured CGI extension and is executable (or configured to be executed).
+
+2) Integration points
+- `Request` parsing: no change to parsing itself, but expose parsed `path`, `query_string`, headers, method, and body to the CGI decision layer.
+- `Client`/`Response`: decide whether to treat the target as a static file or as a CGI script once path resolution completes. If CGI, `Response` prepares the env map and hands control to the CGI runner component.
+- `Stream`/Listener: keep unchanged; the CGI runner will read/write to the network via the same `Stream` semantics (stdin/stdout bridged to process pipes).
+
+3) CGI environment-variable mapping (required set)
+- `REQUEST_METHOD` : request method (GET, POST, etc.)
+- `QUERY_STRING`   : raw query string (everything after `?`); empty string if none
+- `CONTENT_LENGTH` : body length (or absent/empty for none)
+- `CONTENT_TYPE`   : `Content-Type` header if present
+- `SCRIPT_NAME`    : the virtual path to the script (the matched URI path portion)
+- `PATH_INFO`      : the extra path info after the script name (if any)
+- `SERVER_NAME`    : hostname from the `Host` header (or configured server name)
+- `SERVER_PORT`    : port number from the `Host` header or listener
+- `SERVER_PROTOCOL`: HTTP/1.1 or HTTP/1.0
+- `REMOTE_ADDR`    : client IP (if available from socket)
+- `REQUEST_URI`    : full original request-target (for logging/debug)
+- `REMOTE_HOST`    : optional reverse DNS of client (not required)
+
+4) Parsing/encoding rules
+- `QUERY_STRING` must be the raw percent-encoded string (do not decode before passing).
+- For POST with `Content-Type: application/x-www-form-urlencoded`, the raw body should be passed on `stdin` and `CONTENT_LENGTH` set accordingly.
+- Binary bodies (file uploads, multipart) must pass length and content-type correctly; do not alter body bytes.
+- `SCRIPT_NAME` and `PATH_INFO` determination: when URI maps to `/some/dir/script.py/extra/info`, `SCRIPT_NAME` = `/some/dir/script.py` and `PATH_INFO` = `/extra/info` (ensure proper decoding rules are documented).
+
+5) Security and edge cases
+- Enforce size limits and timeouts before invoking CGI to prevent resource exhaustion.
+- Sanitize `PATH_INFO` to avoid directory-traversal surprises; do not allow `..` segments to escape script root.
+- If script file is missing or not executable, fall back to normal static-file 404/403 handling.
+
+6) Passing env to CGI runner (design note)
+- The `Response` component should produce a `std::vector<std::string>` or equivalent of `KEY=VALUE` entries, ready to be converted to `char* envp[]` for `execve` by the CGI runner.
+- Provide the raw request body via a pipe connected to the child process `stdin` when required.
+
+7) Tests & examples
+- Add unit tests for `SCRIPT_NAME`/`PATH_INFO` extraction with multiple URI cases.
+- Create integration examples in `examples/` demonstrating `GET` and `POST` to a small script under `root/api/`.
+
+8) Acceptance criteria
+- Requests to configured CGI extensions are flagged for CGI handling after path resolution.
+- Generated env map contains the keys above with correctly formatted values.
+- Query strings and request bodies are preserved verbatim when passed to the CGI runner.
+
+9) Docs & next steps
+- Update `README.md` and `docs/WhatWeWillDo.md` to include usage examples and configuration knobs controlling allowed CGI extensions and execution policy.
+- Implement the CGI runner as a focused component that consumes the env map, spawns the process, and bridges pipes to the `Stream`.
+
+---

@@ -54,7 +54,7 @@ public:
  Result<bool> handleDelete(const Request& req, const Config_Server& serv);
  Result<bool> handleError(const Config_Server& serv);
 
- const char *getcHeader() const;
+ void setStatusCode(int status_code);
  bool getHeaderSent() const;
  void setFilePath(const Request& req, const Config_Server& serv);
 
@@ -95,10 +95,12 @@ private:
  size_t _body_offset;
  char _mem_body[MAX_HEADER_SIZE];
  bool _has_mem_body;
- const char * _root_error = "./root/errors/";
+ const char * _root;
+ const char * _error;
 
  bool setHeader(const Config_Server& serv);
  void setContentType();
- bool file_stat_read(struct stat &, const Request &req);
+ bool fileStatRead(struct stat &, const Request &req, const Config_Server& serv);
  bool generateDirectoryIndex(const char *dir_path, const Request &req);
+ const char * matchRouteToRoot(const Request& req, const std::vector<Config_Route>& routes);
 };

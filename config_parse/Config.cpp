@@ -60,7 +60,7 @@ Config::Config(std::ifstream &infile) {
   }
 }
 static bool isStrSliceEqualtoString(const std::string &string,
-                                    StrSlice &slice) {
+                                    const StrSlice &slice) {
   size_t i = 0;
   while (string[i] && i < slice.getLen()) {
     if (string[i] != slice[i])
@@ -69,7 +69,7 @@ static bool isStrSliceEqualtoString(const std::string &string,
   return true;
 }
 const Config_Server &Config::match_server(int &port, int &ip,
-                                          StrSlice &host) const {
+                                          const StrSlice &host) const {
   std::vector<Config_Server>::const_iterator start = this->_servers.begin();
   std::vector<Config_Server>::const_iterator selectedserver =
       this->_servers.begin();
