@@ -25,7 +25,7 @@ Response& Response::operator=(const Response& in) {
     std::memcpy(_filepath, in._filepath, MAX_FILE_PATH);
     _status_code = in._status_code;
     _content_type = in._content_type;
-
+    _location = in._location;
     _content_len = in._content_len;
     _body_fd = in._body_fd;
     _body_offset = in._body_offset;
@@ -52,7 +52,7 @@ void Response::reset() {
   std::memset(_filepath, 0, MAX_FILE_PATH);
   _status_code = 200;
   _content_type = OTHER;
-
+  _location = 0;
   _content_len = 0;
   _body_fd = -1;
   _body_offset = 0;
@@ -60,10 +60,7 @@ void Response::reset() {
 }
 
 void Response::setFilePath(const Request& req, const Config_Server& serv) {
-  std::cout << "response :: 63 getROOT = " << serv.getRoot() << std::endl;
   const char * root = serv.getRoot().c_str();
-  if (req.getMethod() != GET)
-    root = serv.getUploadLocation().c_str();
   StrSlice uri = req.getRequestURI();
   char full_path[MAX_FILE_PATH];
   size_t out_len = 0;
@@ -169,16 +166,16 @@ Result<bool> Response::handleRequest(const Request& req, const Config_Server& se
   // TODO: setFilePath
   setFilePath(req, serv);
   if (req.getMethod() == GET) {
-    return handleGet(req);
+    return handleGet(req, serv);
   }
   else if (req.getMethod() == POST) {
-    return handlePost(req);
+    return handlePost(req, serv);
   }
   else if (req.getMethod() == DELETE) {
-    return handleDelete(req);
+    return handleDelete(req, serv);
   }
   _status_code = 405;
-  return handleError();
+  return handleError(serv);
 }
 
 bool Response::file_stat_read(struct stat& _file_stat, const Request &req) {
@@ -405,7 +402,7 @@ bool numcat(char *dest, ssize_t i, size_t max_dest_len) {
   return true;
 }
 
-bool Response::setHeader() {
+bool Response::setHeader(const Config_Server& serv) {
   std::memset(_header, 0, MAX_HEADER_SIZE);
   _head_offset = 0;
   _header_sent = false;
@@ -457,11 +454,11 @@ bool Response::setHeader() {
   return true;
 }
 
-Result<bool> Response::handleGet(const Request& req) {
+Result<bool> Response::handleGet(const Request& req, const Config_Server& serv) {
   struct stat _file_stat;
   if (!file_stat_read(_file_stat, req))
-    return (handleError());
-  if (!setHeader())
+    return (handleError(serv));
+  if (!setHeader(serv))
     return Result<bool>("Cannot set head shit has hit the fan");
   (void)req;
   bool ok = true;
@@ -516,9 +513,9 @@ static bool check_post_parent_dir(const char *filepath, int &status_code) {
   return true;
 }
 
-Result<bool> Response::handlePost(const Request& req) {
+Result<bool> Response::handlePost(const Request& req, const Config_Server& serv) {
   if (!check_post_parent_dir(_filepath, _status_code)) {
-    return handleError();
+    return handleError(serv);
   }
 
   int access_stat = access(_filepath, F_OK);
@@ -526,7 +523,7 @@ Result<bool> Response::handlePost(const Request& req) {
   int fd = open(_filepath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
   if (fd == -1) {
     _status_code = 500;
-    return handleError();
+    return handleError(serv);
   }
   StrSlice body = req.getBody();
 
@@ -534,26 +531,26 @@ Result<bool> Response::handlePost(const Request& req) {
   if (_written != body.getLen()) {
     close(fd);
     _status_code = 500;
-    return handleError();
+    return handleError(serv);
   }
   if (access_stat == -1)
     _status_code = 201;
   else
     _status_code = 204;
-  setHeader();
+  setHeader(serv);
   (void)req;
   bool ok = true;
   return Result<bool>(ok);
 }
 
-Result<bool> Response::handleDelete(const Request& req) {
+Result<bool> Response::handleDelete(const Request& req, const Config_Server& serv) {
   (void)req;
   bool ok = true;
   return Result<bool>(ok);
 }
 
 
-Result<bool> Response::handleError() {
+Result<bool> Response::handleError(const Config_Server& serv) {
   if (_body_fd != -1) {
     close(_body_fd);
     _body_fd = -1;
@@ -563,7 +560,7 @@ Result<bool> Response::handleError() {
 
   _content_type = PLAIN;
   _content_len = -1;
-  if (!setHeader())
+  if (!setHeader(serv))
     return Result<bool>("Cannot set error header just send backup error");
   bool ok = true;
   return Result<bool>(ok);
