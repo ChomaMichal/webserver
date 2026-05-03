@@ -68,9 +68,11 @@ static bool isStrSliceEqualtoString(const std::string &string,
   }
   return true;
 }
-Config_Server &Config::match_server(int port, int ip, StrSlice host) {
-  std::vector<Config_Server>::iterator start = this->_servers.begin();
-  std::vector<Config_Server>::iterator selectedserver = this->_servers.begin();
+const Config_Server &Config::match_server(int port, int ip,
+                                          StrSlice host) const {
+  std::vector<Config_Server>::const_iterator start = this->_servers.begin();
+  std::vector<Config_Server>::const_iterator selectedserver =
+      this->_servers.begin();
   bool default_set = false;
   bool allow_general_match = true;
   bool first_set = false;
@@ -99,4 +101,6 @@ Config_Server &Config::match_server(int port, int ip, StrSlice host) {
   }
   return *selectedserver;
 }
-const std::vector<Config_Server> &Config::getServers() const { return this->_servers; }
+const std::vector<Config_Server> &Config::getServers() const {
+  return this->_servers;
+}
