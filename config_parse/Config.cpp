@@ -68,8 +68,8 @@ static bool isStrSliceEqualtoString(const std::string &string,
   }
   return true;
 }
-const Config_Server &Config::match_server(int port, int ip,
-                                          StrSlice host) const {
+const Config_Server &Config::match_server(int &port, int &ip,
+                                          StrSlice &host) const {
   std::vector<Config_Server>::const_iterator start = this->_servers.begin();
   std::vector<Config_Server>::const_iterator selectedserver =
       this->_servers.begin();
