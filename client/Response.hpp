@@ -48,11 +48,11 @@ public:
 //  std::string getStatusReason();
 
  //HANDLE STUFF
- Result<bool> handleRequest(const Request& req, const Config_Server& in); //#todo
- Result<bool> handleGet(const Request& req);
- Result<bool> handlePost(const Request& req);
- Result<bool> handleDelete(const Request& req);
- Result<bool> handleError();
+ Result<bool> handleRequest(const Request& req, const Config_Server& serv); //#todo
+ Result<bool> handleGet(const Request& req, const Config_Server& serv);
+ Result<bool> handlePost(const Request& req, const Config_Server& serv);
+ Result<bool> handleDelete(const Request& req, const Config_Server& serv);
+ Result<bool> handleError(const Config_Server& serv);
 
  const char *getcHeader() const;
  bool getHeaderSent() const;
@@ -85,7 +85,9 @@ private:
  const char *_header_content_length = "Content-Length: ";
  const char *_header_content_type = "Content-Type: ";
  const char *_header_allow_get_post_delete = "Allow: GET, POST, DELETE";
+ const char *_header_location = "Location: ";
 
+ bool _location;
  e_content_type _content_type;
  ssize_t _content_len;
 
@@ -95,7 +97,7 @@ private:
  bool _has_mem_body;
  const char * _root_error = "./root/errors/";
 
- bool setHeader();
+ bool setHeader(const Config_Server& serv);
  void setContentType();
  bool file_stat_read(struct stat &, const Request &req);
  bool generateDirectoryIndex(const char *dir_path, const Request &req);
