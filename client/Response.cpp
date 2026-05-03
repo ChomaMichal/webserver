@@ -61,7 +61,7 @@ void Response::reset() {
 }
 
 void Response::setFilePath(const Request& req, const Config_Server& serv) {
-  const char * root = serv.getRoot().c_str();
+  const char * root = _root;
   StrSlice uri = req.getRequestURI();
   char full_path[MAX_FILE_PATH];
   size_t out_len = 0;
@@ -151,22 +151,28 @@ void Response::setContentType() {
 
 const char * Response::matchRouteToRoot(const Request& req, const std::vector<Config_Route>& routes) {
   // TODO: TEST mehras
-  char parent_buff[MAX_FILE_PATH] = {};
   for (auto idx = routes.begin(); idx != routes.end(); idx++) {
+    char parent_buff[MAX_FILE_PATH] = {};
+    std::cout << "response :: 156 :: locations = " << idx->getLocation() << std::endl;
     auto i = 0U;
     for (i = 0U; i < idx->getLocation().size(); ++i) {
-      if (i >= req.getRequestURI().getLen() - 1) {
+      if (i >= req.getRequestURI().getLen()) {
         break ;
       }
       parent_buff[i] = req.getRequestURI()[i];
     }
-    if (i >= req.getRequestURI().getLen() - 1)
+    std::cout << "response :: 164 :: uri = " << req.getRequestURI() << std::endl;
+    std::cout << "response :: 164 :: parent_buff = " << parent_buff << std::endl;
+    if (i >= req.getRequestURI().getLen())
       continue ;
+    std::cout << "response :: 166 :: parent_buff = " << parent_buff << std::endl;
     if (!req.getRequestURI()[i] && req.getRequestURI()[i] != '/')
       continue;
     parent_buff[i] = 0;
+    std::cout << "response :: 169 :: parent_buff = " << parent_buff << std::endl;
     if (!std::strncmp(parent_buff, idx->getLocation().c_str(), i))
       return idx->getRoot().c_str();
+  // TODO hold the uri index
   }
   return (NULL);
 }
@@ -178,7 +184,9 @@ Result<bool> Response::handleRequest(const Request& req, const Config_Server& se
   _root = matchRouteToRoot(req, routes);
   if (!_root)
     _root = serv.getRoot().c_str();
+  std::cout << "response :: 186 :: root = " << _root << std::endl;
   setFilePath(req, serv);
+  std::cout << "response :: 188 :: filepath = " << _filepath << std::endl;
   
   if (req.getMethod() == GET) {
     return handleGet(req, serv);
@@ -219,30 +227,34 @@ bool Response::fileStatRead(struct stat& _file_stat, const Request &req, const C
       }
     }
     
+    // std::cout << "response :: 224 :: index_path = " << index_path << std::endl;
     char const *index_file = "index.html";
     if (std::strlen(index_path) + std::strlen(index_file) < MAX_FILE_PATH) {
       std::strcat(index_path, index_file);
       struct stat idx_stat;
-      if (stat(index_path, &idx_stat) == 0 && S_ISLNK(idx_stat.st_mode) && S_ISREG(idx_stat.st_mode) && access(index_path, R_OK) == 0) {
+      if (stat(index_path, &idx_stat) == 0 && S_ISREG(idx_stat.st_mode) && access(index_path, R_OK) == 0) {
         std::strcpy(_filepath, index_path);
         _file_stat = idx_stat;
+        std::cout << "response :: 232 :: index_path = " << index_path << std::endl;
       } else if (serv.getAutoIndex()) {
         return generateDirectoryIndex(_filepath, req);
-      }
+      } else {
         return (_status_code = 403, false);
+      }
     } else {
       return (_status_code = 500, false);
     }
   }
-
+  std::cout << "response :: 241 :: filepath = " << _filepath << std::endl;
   if (S_ISLNK(_file_stat.st_mode) || !S_ISREG(_file_stat.st_mode)) {
     return (_status_code = 403, false);
   }
-
+  std::cout << "response :: 245 :: filepath = " << _filepath << std::endl;
   if (access(_filepath, R_OK) == -1) {
     return (_status_code = 403, false);
   }
   setContentType();
+  std::cout << "response :: 250 :: filepath = " << _filepath << std::endl;
   if (_content_type == OTHER) {
     return (_status_code = 415, false);
   }

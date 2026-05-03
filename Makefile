@@ -93,7 +93,7 @@ $(CLIENT_BIN): $(CLIENT_SRCS) $(CLIENT_DIR)/Request.hpp | $(BUILD_DIR)
 
 test_client: $(CLIENT_BIN)
 	@echo "Testing client module..."
-	@./$(CLIENT_BIN)
+	@./$(CLIENT_BIN) config_files/simple.conf
 	@echo "✓ Client tests passed"
 
 # Config parser test
