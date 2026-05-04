@@ -30,6 +30,7 @@ Response& Response::operator=(const Response& in) {
     _body_fd = in._body_fd;
     _body_offset = in._body_offset;
     _has_mem_body = in._has_mem_body;
+    _uri_index = in._uri_index;
     std::memcpy(_mem_body, in._mem_body, MAX_HEADER_SIZE);
   }
   return (*this);
@@ -58,6 +59,7 @@ void Response::reset() {
   _body_offset = 0;
   _root = NULL;
   _error = NULL;
+  _uri_index = 0;
 }
 
 void Response::setFilePath(const Request& req, const Config_Server& serv) {
@@ -75,15 +77,16 @@ void Response::setFilePath(const Request& req, const Config_Server& serv) {
     out_len++;
   }
 
-  size_t i = 0;
-  if (uri.getLen() > 0 && uri[0] == '/') {
-    i = 1;
-  }
+  size_t i = _uri_index;
+  // std::cout << "response :: 81 :: _uri_index = " << _uri_index << std::endl;
 
   for (; i < uri.getLen(); ++i) {
     if (out_len + 1 >= MAX_FILE_PATH) {
       std::memcpy(_filepath, "", 1);
       return ;
+    }
+    if (uri[i] == '/' && out_len > 0 && full_path[out_len - 1] == '/') {
+      continue;
     }
     // std::cout << uri[i] << std::endl;
     full_path[out_len] = uri[i];
@@ -150,43 +153,48 @@ void Response::setContentType() {
 }
 
 const char * Response::matchRouteToRoot(const Request& req, const std::vector<Config_Route>& routes) {
-  // TODO: TEST mehras
+  _uri_index = 0;
   for (auto idx = routes.begin(); idx != routes.end(); idx++) {
-    char parent_buff[MAX_FILE_PATH] = {};
-    std::cout << "response :: 156 :: locations = " << idx->getLocation() << std::endl;
-    auto i = 0U;
-    for (i = 0U; i < idx->getLocation().size(); ++i) {
-      if (i >= req.getRequestURI().getLen()) {
-        break ;
+    const std::string& loc = idx->getLocation();
+    const StrSlice& uri = req.getRequestURI();
+
+    if (uri.getLen() >= loc.size()) {
+      bool is_prefix = true;
+      for (size_t i = 0; i < loc.size(); ++i) {
+        if (uri[i] != loc[i]) {
+          is_prefix = false;
+          break;
+        }
       }
-      parent_buff[i] = req.getRequestURI()[i];
+      if (is_prefix) {
+        if (loc.size() == 0 || loc[loc.size() - 1] == '/' || uri.getLen() == loc.size() || uri[loc.size()] == '/') {
+          if (!idx->getRoot().empty()) { // TODO after merge to replace with bool
+            _uri_index = loc.size();
+            if (_uri_index < uri.getLen() && uri[_uri_index] == '/') {
+              if (loc.empty() || loc.back() != '/') {
+                _uri_index++;
+              }
+            }
+          }
+          return idx->getRoot().c_str();
+        }
+      }
     }
-    std::cout << "response :: 164 :: uri = " << req.getRequestURI() << std::endl;
-    std::cout << "response :: 164 :: parent_buff = " << parent_buff << std::endl;
-    if (i >= req.getRequestURI().getLen())
-      continue ;
-    std::cout << "response :: 166 :: parent_buff = " << parent_buff << std::endl;
-    if (!req.getRequestURI()[i] && req.getRequestURI()[i] != '/')
-      continue;
-    parent_buff[i] = 0;
-    std::cout << "response :: 169 :: parent_buff = " << parent_buff << std::endl;
-    if (!std::strncmp(parent_buff, idx->getLocation().c_str(), i))
-      return idx->getRoot().c_str();
-  // TODO hold the uri index
   }
+
   return (NULL);
 }
 
 Result<bool> Response::handleRequest(const Request& req, const Config_Server& serv) {
-  // std::cout << "Response :: 127 _" << _filepath << std::endl;
-  // TODO: setFilePath
   const std::vector<Config_Route>& routes = serv.getRoutes();
   _root = matchRouteToRoot(req, routes);
-  if (!_root)
+  if (!_root || _root[0] == '\0') {
     _root = serv.getRoot().c_str();
-  std::cout << "response :: 186 :: root = " << _root << std::endl;
+    _uri_index = 0;
+  }
+  // std::cout << "response :: 186 :: root = " << _root << std::endl;
   setFilePath(req, serv);
-  std::cout << "response :: 188 :: filepath = " << _filepath << std::endl;
+  // std::cout << "response :: 188 :: filepath = " << _filepath << std::endl;
   
   if (req.getMethod() == GET) {
     return handleGet(req, serv);
@@ -235,7 +243,7 @@ bool Response::fileStatRead(struct stat& _file_stat, const Request &req, const C
       if (stat(index_path, &idx_stat) == 0 && S_ISREG(idx_stat.st_mode) && access(index_path, R_OK) == 0) {
         std::strcpy(_filepath, index_path);
         _file_stat = idx_stat;
-        std::cout << "response :: 232 :: index_path = " << index_path << std::endl;
+        // std::cout << "response :: 232 :: index_path = " << index_path << std::endl;
       } else if (serv.getAutoIndex()) {
         return generateDirectoryIndex(_filepath, req);
       } else {
@@ -245,16 +253,16 @@ bool Response::fileStatRead(struct stat& _file_stat, const Request &req, const C
       return (_status_code = 500, false);
     }
   }
-  std::cout << "response :: 241 :: filepath = " << _filepath << std::endl;
+  // std::cout << "response :: 241 :: filepath = " << _filepath << std::endl;
   if (S_ISLNK(_file_stat.st_mode) || !S_ISREG(_file_stat.st_mode)) {
     return (_status_code = 403, false);
   }
-  std::cout << "response :: 245 :: filepath = " << _filepath << std::endl;
+  // std::cout << "response :: 245 :: filepath = " << _filepath << std::endl;
   if (access(_filepath, R_OK) == -1) {
     return (_status_code = 403, false);
   }
   setContentType();
-  std::cout << "response :: 250 :: filepath = " << _filepath << std::endl;
+  // std::cout << "response :: 250 :: filepath = " << _filepath << std::endl;
   if (_content_type == OTHER) {
     return (_status_code = 415, false);
   }
@@ -376,7 +384,6 @@ const char * find_code_reason(int code) {
     case 204: return "No Content";
     case 301: return "Moved Permanently";
     case 302: return "Found";
-    case 307: return "TODO";
     case 400: return "Bad Request";
     case 403: return "Forbidden";
     case 404: return "Not Found";
@@ -542,6 +549,11 @@ static bool check_post_parent_dir(const char *filepath, int &status_code) {
 }
 
 Result<bool> Response::handlePost(const Request& req, const Config_Server& serv) {
+  if (!serv.getUploadAllowed() || std::strncmp(_filepath, serv.getUploadLocation().c_str(), serv.getUploadLocation().size()) != 0) {
+    _status_code = 403;
+    return handleError(serv);
+  }
+
   if (!check_post_parent_dir(_filepath, _status_code)) {
     return handleError(serv);
   }
@@ -572,6 +584,28 @@ Result<bool> Response::handlePost(const Request& req, const Config_Server& serv)
 }
 
 Result<bool> Response::handleDelete(const Request& req, const Config_Server& serv) {
+  if (!serv.getUploadAllowed() || std::strncmp(_filepath, serv.getUploadLocation().c_str(), serv.getUploadLocation().size()) != 0) {
+    _status_code = 403;
+    return handleError(serv);
+  }
+
+  if (access(_filepath, F_OK) == -1) {
+    _status_code = 404;
+    return handleError(serv);
+  }
+  
+  if (access(_filepath, W_OK) == -1) {
+    _status_code = 403;
+    return handleError(serv);
+  }
+
+  if (std::remove(_filepath) != 0) {
+    _status_code = 500;
+    return handleError(serv);
+  }
+
+  _status_code = 204;
+  setHeader(serv);
   (void)req;
   bool ok = true;
   return Result<bool>(ok);
@@ -587,7 +621,7 @@ Result<bool> Response::handleError(const Config_Server& serv) {
   // std::strcpy(_filepath, _root_error);
 
   _content_type = PLAIN;
-  _content_len = -1;
+  _content_len = 0;
   if (!setHeader(serv))
     return Result<bool>("Cannot set error header just send backup error");
   bool ok = true;

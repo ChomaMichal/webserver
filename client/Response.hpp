@@ -97,6 +97,7 @@ private:
  bool _has_mem_body;
  const char * _root;
  const char * _error;
+ size_t _uri_index;
 
  bool setHeader(const Config_Server& serv);
  void setContentType();
