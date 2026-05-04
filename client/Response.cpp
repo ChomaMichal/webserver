@@ -168,7 +168,7 @@ const char * Response::matchRouteToRoot(const Request& req, const std::vector<Co
       }
       if (is_prefix) {
         if (loc.size() == 0 || loc[loc.size() - 1] == '/' || uri.getLen() == loc.size() || uri[loc.size()] == '/') {
-          if (!idx->getRoot().empty()) { // TODO after merge to replace with bool
+          if (!idx->getRoot().empty()) { // TODO after merge to replace with bool 
             _uri_index = loc.size();
             if (_uri_index < uri.getLen() && uri[_uri_index] == '/') {
               if (loc.empty() || loc.back() != '/') {
