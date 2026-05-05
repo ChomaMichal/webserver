@@ -1,5 +1,5 @@
 #pragma once
-#include "../utils/option/Option.hpp"
+#include "../utils/cstd/cstd.hpp"
 #include "../utils/result/Result.hpp"
 #include "../utils/str_slice/StrSlice.hpp"
 #include "../config_parse/Config.hpp"
@@ -56,7 +56,7 @@ public:
 
  void setStatusCode(int status_code);
  bool getHeaderSent() const;
- void setFilePath(const Request& req, const Config_Server& serv);
+ void setFilePath(const Request& req);
 
  size_t chunker(char *tmp_buffer, size_t max_len);
 
@@ -89,7 +89,7 @@ private:
 
  bool _location;
  e_content_type _content_type;
- ssize_t _content_len;
+ size_t _content_len;
 
  int _body_fd;
  size_t _body_offset;

@@ -20,9 +20,9 @@ Response& Response::operator=(const Response& in) {
     _head_offset = in._head_offset;
     _header_size = in._header_size;
     
-    std::memcpy(_header, in._header, MAX_HEADER_SIZE);
+    ft_memcpy(_header, in._header, MAX_HEADER_SIZE);
     
-    std::memcpy(_filepath, in._filepath, MAX_FILE_PATH);
+    ft_memcpy(_filepath, in._filepath, MAX_FILE_PATH);
     _status_code = in._status_code;
     _content_type = in._content_type;
     _location = in._location;
@@ -31,7 +31,7 @@ Response& Response::operator=(const Response& in) {
     _body_offset = in._body_offset;
     _has_mem_body = in._has_mem_body;
     _uri_index = in._uri_index;
-    std::memcpy(_mem_body, in._mem_body, MAX_HEADER_SIZE);
+    ft_memcpy(_mem_body, in._mem_body, MAX_HEADER_SIZE);
   }
   return (*this);
 }
@@ -47,10 +47,10 @@ void Response::reset() {
   _head_offset = 0;
   _header_size = 0;
   
-  std::memset(_mem_body, 0, MAX_HEADER_SIZE);
-  std::memset(_header, 0, MAX_HEADER_SIZE);
+  ft_memset(_mem_body, 0, MAX_HEADER_SIZE);
+  ft_memset(_header, 0, MAX_HEADER_SIZE);
 
-  std::memset(_filepath, 0, MAX_FILE_PATH);
+  ft_memset(_filepath, 0, MAX_FILE_PATH);
   _status_code = 200;
   _content_type = OTHER;
   _location = 0;
@@ -62,14 +62,14 @@ void Response::reset() {
   _uri_index = 0;
 }
 
-void Response::setFilePath(const Request& req, const Config_Server& serv) {
+void Response::setFilePath(const Request& req) {
   const char * root = _root;
   StrSlice uri = req.getRequestURI();
   char full_path[MAX_FILE_PATH];
   size_t out_len = 0;
-  size_t root_len = std::strlen(root);
+  size_t root_len = ft_strlen(root);
 
-  std::memcpy(full_path, root, root_len);
+  ft_memcpy(full_path, root, root_len);
   out_len = root_len;
 
   if (out_len > 0 && full_path[out_len - 1] != '/') {
@@ -82,7 +82,7 @@ void Response::setFilePath(const Request& req, const Config_Server& serv) {
 
   for (; i < uri.getLen(); ++i) {
     if (out_len + 1 >= MAX_FILE_PATH) {
-      std::memcpy(_filepath, "", 1);
+      ft_memcpy(_filepath, "", 1);
       return ;
     }
     if (uri[i] == '/' && out_len > 0 && full_path[out_len - 1] == '/') {
@@ -94,11 +94,11 @@ void Response::setFilePath(const Request& req, const Config_Server& serv) {
   }
 
   full_path[out_len] = 0;
-  std::memcpy(_filepath, full_path, out_len + 1);
+  ft_memcpy(_filepath, full_path, out_len + 1);
 }
 
 void Response::setContentType() {
-  const char *ext = std::strrchr(_filepath, '.');
+  const char *ext = ft_strrchr(_filepath, '.');
 
   if (ext == NULL || *(ext + 1) == 0) {
     return;
@@ -106,43 +106,43 @@ void Response::setContentType() {
 
   switch (*(ext + 1)) {
     case 'b':
-      if (std::strcmp(ext, ".bin") == 0) {
+      if (ft_strcmp(ext, ".bin") == 0) {
         _content_type = BIN;
       }
       break;
     case 'h':
-      if (std::strcmp(ext, ".html") == 0 || std::strcmp(ext, ".htm") == 0) {
+      if (ft_strcmp(ext, ".html") == 0 || ft_strcmp(ext, ".htm") == 0) {
         _content_type = HTML;
       }
       break;
     case 'c':
-      if (std::strcmp(ext, ".css") == 0) {
+      if (ft_strcmp(ext, ".css") == 0) {
         _content_type = CSS;
       }
       break;
     case 'j':
-      if (std::strcmp(ext, ".js") == 0) {
+      if (ft_strcmp(ext, ".js") == 0) {
         _content_type = JAVASCRIPT;
       }
-      else if (std::strcmp(ext, ".json") == 0) {
+      else if (ft_strcmp(ext, ".json") == 0) {
         _content_type = JSON;
       }
-      else if (std::strcmp(ext, ".jpeg") == 0 || std::strcmp(ext, ".jpg") == 0) {
+      else if (ft_strcmp(ext, ".jpeg") == 0 || ft_strcmp(ext, ".jpg") == 0) {
         _content_type = JPEG;
       }
       break;
     case 'p':
-      if (std::strcmp(ext, ".png") == 0) {
+      if (ft_strcmp(ext, ".png") == 0) {
         _content_type = PNG;
       }
       break;
     case 'i':
-      if (std::strcmp(ext, ".ico") == 0) {
+      if (ft_strcmp(ext, ".ico") == 0) {
         _content_type = XICON;
       }
       break;
     case 't':
-      if (std::strcmp(ext, ".txt") == 0) {
+      if (ft_strcmp(ext, ".txt") == 0) {
         _content_type = PLAIN;
       }
       break;
@@ -193,7 +193,7 @@ Result<bool> Response::handleRequest(const Request& req, const Config_Server& se
     _uri_index = 0;
   }
   // std::cout << "response :: 186 :: root = " << _root << std::endl;
-  setFilePath(req, serv);
+  setFilePath(req);
   // std::cout << "response :: 188 :: filepath = " << _filepath << std::endl;
   
   if (req.getMethod() == GET) {
@@ -224,10 +224,10 @@ bool Response::fileStatRead(struct stat& _file_stat, const Request &req, const C
 
   if (S_ISDIR(_file_stat.st_mode)) {
     char index_path[MAX_FILE_PATH];
-    std::strncpy(index_path, _filepath, MAX_FILE_PATH - 1);
+    ft_strncpy(index_path, _filepath, MAX_FILE_PATH - 1);
     index_path[MAX_FILE_PATH - 1] = 0;
 
-    size_t len = std::strlen(index_path);
+    size_t len = ft_strlen(index_path);
     if (len > 0 && index_path[len - 1] != '/') {
       if (len < MAX_FILE_PATH - 1) {
         index_path[len] = '/';
@@ -237,11 +237,11 @@ bool Response::fileStatRead(struct stat& _file_stat, const Request &req, const C
     
     // std::cout << "response :: 224 :: index_path = " << index_path << std::endl;
     char const *index_file = "index.html";
-    if (std::strlen(index_path) + std::strlen(index_file) < MAX_FILE_PATH) {
-      std::strcat(index_path, index_file);
+    if (ft_strlen(index_path) + ft_strlen(index_file) < MAX_FILE_PATH) {
+      ft_strcat(index_path, index_file);
       struct stat idx_stat;
       if (stat(index_path, &idx_stat) == 0 && S_ISREG(idx_stat.st_mode) && access(index_path, R_OK) == 0) {
-        std::strcpy(_filepath, index_path);
+        ft_strcpy(_filepath, index_path);
         _file_stat = idx_stat;
         // std::cout << "response :: 232 :: index_path = " << index_path << std::endl;
       } else if (serv.getAutoIndex()) {
@@ -283,7 +283,7 @@ bool memcat(char *dest, const char *src, size_t n, size_t dest_max_len) {
     return false;
   }
 
-  size_t dest_len = std::strlen(dest);
+  size_t dest_len = ft_strlen(dest);
   if (dest_len >= dest_max_len) {
     return false;
   }
@@ -293,7 +293,7 @@ bool memcat(char *dest, const char *src, size_t n, size_t dest_max_len) {
     return false;
   }
 
-  std::memcpy(dest + dest_len, src, n);
+  ft_memcpy(dest + dest_len, src, n);
   dest[dest_len + n] = 0;
   return true;
 }
@@ -308,7 +308,7 @@ bool Response::generateDirectoryIndex(const char *dir_path, const Request &req) 
   char uri_path[MAX_FILE_PATH];
   StrSlice req_uri = req.getRequestURI();
   size_t copy_len = req_uri.getLen();
-  std::memcpy(uri_path, &req_uri.at(0), copy_len);
+  ft_memcpy(uri_path, &req_uri.at(0), copy_len);
   uri_path[copy_len] = 0;
   
   if (copy_len > 0 && uri_path[copy_len - 1] != '/') {
@@ -319,21 +319,21 @@ bool Response::generateDirectoryIndex(const char *dir_path, const Request &req) 
   _mem_body[0] = 0;
   size_t max_len = sizeof(_mem_body);
 
-  memcat(_mem_body, "<html><head><title>Index of ", std::strlen("<html><head><title>Index of "), max_len);
-  memcat(_mem_body, uri_path, std::strlen(uri_path), max_len);
-  memcat(_mem_body, "</title></head><body><h1>Index of ", std::strlen("</title></head><body><h1>Index of "), max_len);
-  memcat(_mem_body, uri_path, std::strlen(uri_path), max_len);
-  memcat(_mem_body, "</h1><hr><ul>\n", std::strlen("</h1><hr><ul>\n"), max_len);
+  memcat(_mem_body, "<html><head><title>Index of ", ft_strlen("<html><head><title>Index of "), max_len);
+  memcat(_mem_body, uri_path, ft_strlen(uri_path), max_len);
+  memcat(_mem_body, "</title></head><body><h1>Index of ", ft_strlen("</title></head><body><h1>Index of "), max_len);
+  memcat(_mem_body, uri_path, ft_strlen(uri_path), max_len);
+  memcat(_mem_body, "</h1><hr><ul>\n", ft_strlen("</h1><hr><ul>\n"), max_len);
 
   struct dirent *entry;
   while ((entry = readdir(dir)) != NULL) {
-    if (std::strcmp(entry->d_name, ".") == 0) {
+    if (ft_strcmp(entry->d_name, ".") == 0) {
       continue;
     }
     char path_buf[MAX_FILE_PATH] = {};
-    memcat(path_buf, dir_path, std::strlen(dir_path), sizeof(path_buf));
+    memcat(path_buf, dir_path, ft_strlen(dir_path), sizeof(path_buf));
     memcat(path_buf, "/", 1, sizeof(path_buf));
-    memcat(path_buf, entry->d_name, std::strlen(entry->d_name), sizeof(path_buf));
+    memcat(path_buf, entry->d_name, ft_strlen(entry->d_name), sizeof(path_buf));
     
     struct stat s_st;
     bool is_dir = true;
@@ -343,34 +343,34 @@ bool Response::generateDirectoryIndex(const char *dir_path, const Request &req) 
 
     char target[MAX_FILE_PATH];
     target[0] = 0;
-    memcat(target, uri_path, std::strlen(uri_path), sizeof(target));
-    memcat(target, entry->d_name, std::strlen(entry->d_name), sizeof(target));
+    memcat(target, uri_path, ft_strlen(uri_path), sizeof(target));
+    memcat(target, entry->d_name, ft_strlen(entry->d_name), sizeof(target));
 
     char link[2048];
     link[0] = 0;
     size_t link_max = sizeof(link);
     
     memcat(link, "<li><a href=\"", 13, link_max);
-    memcat(link, target, std::strlen(target), link_max);
+    memcat(link, target, ft_strlen(target), link_max);
     if (is_dir) {
       memcat(link, "/", 1, link_max);
     }
     memcat(link, "\">", 2, link_max);
-    memcat(link, entry->d_name, std::strlen(entry->d_name), link_max);
+    memcat(link, entry->d_name, ft_strlen(entry->d_name), link_max);
     if (is_dir) {
       memcat(link, "/", 1, link_max);
     }
     memcat(link, "</a></li>\n", 10, link_max);
 
-    memcat(_mem_body, link, std::strlen(link), max_len);
+    memcat(_mem_body, link, ft_strlen(link), max_len);
   }
   closedir(dir);
 
-  if (!memcat(_mem_body, "</ul><hr></body></html>\n", std::strlen("</ul><hr></body></html>\n"), max_len)) {
+  if (!memcat(_mem_body, "</ul><hr></body></html>\n", ft_strlen("</ul><hr></body></html>\n"), max_len)) {
     _status_code = 413;
     return false;
   }
-  _content_len = std::strlen(_mem_body);
+  _content_len = ft_strlen(_mem_body);
   _content_type = HTML;
   _has_mem_body = true;
   _status_code = 200;
@@ -438,10 +438,10 @@ bool numcat(char *dest, ssize_t i, size_t max_dest_len) {
 }
 
 bool Response::setHeader(const Config_Server& serv) {
-  std::memset(_header, 0, MAX_HEADER_SIZE);
+  ft_memset(_header, 0, MAX_HEADER_SIZE);
   _head_offset = 0;
   _header_sent = false;
-  std::memcpy(_header, _http_version, std::strlen(_http_version) + 1);
+  ft_memcpy(_header, _http_version, ft_strlen(_http_version) + 1);
 
   const char code[5] = {(const char)(_status_code / 100 + '0'),
               (const char)(_status_code / 10 % 10 + '0'),
@@ -451,40 +451,40 @@ bool Response::setHeader(const Config_Server& serv) {
     return false;
 
   const char *reason = find_code_reason(_status_code);
-  if (!memcat(_header, reason, std::strlen(reason), MAX_HEADER_SIZE))
+  if (!memcat(_header, reason, ft_strlen(reason), MAX_HEADER_SIZE))
     return false;
 
   if (!memcat(_header, "\r\n", 2, MAX_HEADER_SIZE))
     return false;
 
-  if (!memcat(_header, _server, std::strlen(_server), MAX_HEADER_SIZE))
+  if (!memcat(_header, _server, ft_strlen(_server), MAX_HEADER_SIZE))
     return false;
   if (!memcat(_header, "\r\n", 2, MAX_HEADER_SIZE))
     return false;
 
-  if (!memcat(_header, _header_content_type, std::strlen(_header_content_type), MAX_HEADER_SIZE))
+  if (!memcat(_header, _header_content_type, ft_strlen(_header_content_type), MAX_HEADER_SIZE))
     return false;
   const char *content_type = find_content_type(_content_type);
-  if (!memcat(_header, content_type, std::strlen(content_type), MAX_HEADER_SIZE))
+  if (!memcat(_header, content_type, ft_strlen(content_type), MAX_HEADER_SIZE))
     return false;
 
   if (!memcat(_header, "\r\n", 2, MAX_HEADER_SIZE))
     return false;
 
-  if (!memcat(_header, _header_content_length, std::strlen(_header_content_length), MAX_HEADER_SIZE))
+  if (!memcat(_header, _header_content_length, ft_strlen(_header_content_length), MAX_HEADER_SIZE))
     return false;
   if (!numcat(_header, _content_len, MAX_HEADER_SIZE))
     return false;
   if (!memcat(_header, "\r\n", 2, MAX_HEADER_SIZE))
     return false;
   
-  if (!memcat(_header, _header_connection_close, std::strlen(_header_connection_close), MAX_HEADER_SIZE))
+  if (!memcat(_header, _header_connection_close, ft_strlen(_header_connection_close), MAX_HEADER_SIZE))
     return false;
 
   if (!memcat(_header, "\r\n\r\n", 4, MAX_HEADER_SIZE))
     return false;
 
-  _header_size = std::strlen(_header);
+  _header_size = ft_strlen(_header);
 
   return true;
 }
@@ -507,17 +507,17 @@ static bool check_post_parent_dir(const char *filepath, int &status_code) {
   }
 
   char parent[MAX_FILE_PATH] = {};
-  const char *last_slash = std::strrchr(filepath, '/');
+  const char *last_slash = ft_strrchr(filepath, '/');
 
   if (last_slash == NULL) {
-    std::memmove(parent, ".", 1);
+    ft_memmove(parent, ".", 1);
   }
   else if (last_slash == filepath) {
-    std::memmove(parent, "/", 1);
+    ft_memmove(parent, "/", 1);
   }
   else {
     int to_copy = last_slash - filepath;
-    std::strncpy(parent, filepath, to_copy);
+    ft_strncpy(parent, filepath, to_copy);
     parent[to_copy] = 0;
   }
 
@@ -549,7 +549,7 @@ static bool check_post_parent_dir(const char *filepath, int &status_code) {
 }
 
 Result<bool> Response::handlePost(const Request& req, const Config_Server& serv) {
-  if (!serv.getUploadAllowed() || std::strncmp(_filepath, serv.getUploadLocation().c_str(), serv.getUploadLocation().size()) != 0) {
+  if (!serv.getUploadAllowed() || ft_strncmp(_filepath, serv.getUploadLocation().c_str(), serv.getUploadLocation().size()) != 0) {
     _status_code = 403;
     return handleError(serv);
   }
@@ -567,7 +567,7 @@ Result<bool> Response::handlePost(const Request& req, const Config_Server& serv)
   }
   StrSlice body = req.getBody();
 
-  int _written = write(fd, &body.at(0), body.getLen());
+  size_t _written = write(fd, &body.at(0), body.getLen());
   if (_written != body.getLen()) {
     close(fd);
     _status_code = 500;
@@ -584,7 +584,7 @@ Result<bool> Response::handlePost(const Request& req, const Config_Server& serv)
 }
 
 Result<bool> Response::handleDelete(const Request& req, const Config_Server& serv) {
-  if (!serv.getUploadAllowed() || std::strncmp(_filepath, serv.getUploadLocation().c_str(), serv.getUploadLocation().size()) != 0) {
+  if (!serv.getUploadAllowed() || ft_strncmp(_filepath, serv.getUploadLocation().c_str(), serv.getUploadLocation().size()) != 0) {
     _status_code = 403;
     return handleError(serv);
   }
@@ -617,8 +617,8 @@ Result<bool> Response::handleError(const Config_Server& serv) {
     close(_body_fd);
     _body_fd = -1;
   }
-  // std::memset(_filepath, 0, MAX_FILE_PATH);
-  // std::strcpy(_filepath, _root_error);
+  // ft_memset(_filepath, 0, MAX_FILE_PATH);
+  // ft_strcpy(_filepath, _root_error);
 
   _content_type = PLAIN;
   _content_len = 0;
@@ -637,7 +637,7 @@ size_t Response::chunker(char *tmp_buffer, size_t max_len) {
     size_t remaining = _header_size - _head_offset;
     size_t to_copy = std::min(remaining, max_len);
     if (to_copy > 0) {
-      std::memcpy(tmp_buffer, _header, to_copy);
+      ft_memcpy(tmp_buffer, _header, to_copy);
       _head_offset += to_copy;
     }
     if (_head_offset >= _header_size)
@@ -654,7 +654,7 @@ size_t Response::chunker(char *tmp_buffer, size_t max_len) {
   
   if (_has_mem_body) {
     if (to_read > 0) {
-      std::memcpy(tmp_buffer, _mem_body + _body_offset, to_read);
+      ft_memcpy(tmp_buffer, _mem_body + _body_offset, to_read);
       _body_offset += to_read;
     }
     return to_read;
@@ -681,7 +681,7 @@ bool Response::getHeaderSent() const {
 }
 
 bool Response::isFullySent() const {
-  return _header_sent && (_content_len == -1 || _body_offset >= _content_len);
+  return _header_sent && (_content_len == 0 || _body_offset >= _content_len);
 }
 
 Option<int> ft_open(const std::string &filename) {

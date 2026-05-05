@@ -111,7 +111,6 @@ void handleSigInt(int sig) {
 }
 
 const int PORT = 2222;
-const int BUFFER_SIZE = 4096;
 
 int main(int argc, char **argv) {
   if (argc != 2) {
