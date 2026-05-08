@@ -107,3 +107,5 @@ private:
  bool generateDirectoryIndex(const char *dir_path, const Request &req);
  const char * matchRouteToRoot(const Request& req, const std::vector<Config_Route>& routes);
 };
+
+// for michal <your class> popen(const char * _file_path, enum file_extention, const char *env_var);
