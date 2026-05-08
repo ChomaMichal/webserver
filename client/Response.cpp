@@ -176,6 +176,7 @@ const char * Response::matchRouteToRoot(const Request& req, const std::vector<Co
               }
             }
           }
+          _matched_route = &(*idx);
           return idx->getRoot().c_str();
         }
       }
@@ -186,11 +187,15 @@ const char * Response::matchRouteToRoot(const Request& req, const std::vector<Co
 }
 
 Result<bool> Response::handleRequest(const Request& req, const Config_Server& serv) {
+  // TODO: check redirect if exist call handle redirect
   const std::vector<Config_Route>& routes = serv.getRoutes();
   _root = matchRouteToRoot(req, routes);
   if (!_root || _root[0] == '\0') {
     _root = serv.getRoot().c_str();
     _uri_index = 0;
+  }
+  else if (_root) { // && redirect in _matched_route
+    // redirect
   }
   // std::cout << "response :: 186 :: root = " << _root << std::endl;
   setFilePath(req);

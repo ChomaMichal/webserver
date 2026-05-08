@@ -87,6 +87,8 @@ private:
  const char *_header_allow_get_post_delete = "Allow: GET, POST, DELETE";
  const char *_header_location = "Location: ";
 
+
+ const Config_Route * _matched_route;
  bool _location;
  e_content_type _content_type;
  size_t _content_len;
