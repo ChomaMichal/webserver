@@ -225,6 +225,7 @@ int main(int argc, char **argv) {
           element++;
           continue;
         }
+        std::cout << "main :: 228 :: request = " << element->getRequest() << std::endl;
         int addr = INADDR_ANY;
         int port = PORT;
         const Config_Server tmp = config.match_server(addr, port, element->getRequest().getHost());
