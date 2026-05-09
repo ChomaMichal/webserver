@@ -48,11 +48,12 @@ public:
 //  std::string getStatusReason();
 
  //HANDLE STUFF
- Result<bool> handleRequest(const Request& req, const Config_Server& serv); //#todo
+ Result<bool> handleRequest(const Request& req, const Config_Server& serv);
  Result<bool> handleGet(const Request& req, const Config_Server& serv);
  Result<bool> handlePost(const Request& req, const Config_Server& serv);
  Result<bool> handleDelete(const Request& req, const Config_Server& serv);
  Result<bool> handleError(const Config_Server& serv);
+ Result<bool> handleRedirect();
 
  void setStatusCode(int status_code);
  bool getHeaderSent() const;
@@ -89,7 +90,9 @@ private:
 
 
  const Config_Route * _matched_route;
- bool _location;
+ bool _has_location;
+ bool _has_content_type;
+ bool _has_content_length;
  e_content_type _content_type;
  size_t _content_len;
 
@@ -99,6 +102,7 @@ private:
  bool _has_mem_body;
  const char * _root;
  const char * _error;
+ const char * _location;
  size_t _uri_index;
 
  bool setHeader(const Config_Server& serv);

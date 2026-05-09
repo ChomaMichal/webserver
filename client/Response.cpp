@@ -25,12 +25,14 @@ Response& Response::operator=(const Response& in) {
     ft_memcpy(_filepath, in._filepath, MAX_FILE_PATH);
     _status_code = in._status_code;
     _content_type = in._content_type;
-    _location = in._location;
+    _has_location = in._has_location;
     _content_len = in._content_len;
     _body_fd = in._body_fd;
     _body_offset = in._body_offset;
     _has_mem_body = in._has_mem_body;
     _uri_index = in._uri_index;
+    _location = in._location;
+    _root = in._root;
     ft_memcpy(_mem_body, in._mem_body, MAX_HEADER_SIZE);
   }
   return (*this);
@@ -53,12 +55,15 @@ void Response::reset() {
   ft_memset(_filepath, 0, MAX_FILE_PATH);
   _status_code = 200;
   _content_type = OTHER;
-  _location = 0;
+  _has_location = 0;
+  _has_content_type = 0;
+  _has_content_length = 0;
   _content_len = 0;
   _body_fd = -1;
   _body_offset = 0;
   _root = NULL;
   _error = NULL;
+  _location = NULL;
   _uri_index = 0;
 }
 
@@ -168,7 +173,7 @@ const char * Response::matchRouteToRoot(const Request& req, const std::vector<Co
       }
       if (is_prefix) {
         if (loc.size() == 0 || loc[loc.size() - 1] == '/' || uri.getLen() == loc.size() || uri[loc.size()] == '/') {
-          if (!idx->getRoot().empty()) { // TODO after merge to replace with bool 
+          if (idx->getRootChanged()) {
             _uri_index = loc.size();
             if (_uri_index < uri.getLen() && uri[_uri_index] == '/') {
               if (loc.empty() || loc.back() != '/') {
@@ -187,15 +192,21 @@ const char * Response::matchRouteToRoot(const Request& req, const std::vector<Co
 }
 
 Result<bool> Response::handleRequest(const Request& req, const Config_Server& serv) {
-  // TODO: check redirect if exist call handle redirect
+  if (serv.getRedirectionSet()) {
+    _status_code = serv.getRedirection().first;
+    _location = serv.getRedirection().second.c_str();
+    return handleRedirect();
+  }
   const std::vector<Config_Route>& routes = serv.getRoutes();
   _root = matchRouteToRoot(req, routes);
   if (!_root || _root[0] == '\0') {
     _root = serv.getRoot().c_str();
     _uri_index = 0;
   }
-  else if (_root) { // && redirect in _matched_route
-    // redirect
+  else if (_root && _matched_route) {
+    _status_code = serv.getRedirection().first;
+    _location = serv.getRedirection().second.c_str();
+    return handleRedirect();
   }
   // std::cout << "response :: 186 :: root = " << _root << std::endl;
   setFilePath(req);
@@ -212,6 +223,12 @@ Result<bool> Response::handleRequest(const Request& req, const Config_Server& se
   }
   _status_code = 405;
   return handleError(serv);
+}
+
+Result<bool> Response::handleRedirect() {
+  // TODO
+  bool ok = true;
+  return Result<bool>(ok);
 }
 
 bool Response::fileStatRead(struct stat& _file_stat, const Request &req, const Config_Server& serv) {
@@ -617,7 +634,7 @@ Result<bool> Response::handleDelete(const Request& req, const Config_Server& ser
 }
 
 
-Result<bool> Response::handleError(const Config_Server& serv) {
+Result<bool> Response::handleError(const Config_Server& serv) { //TODO
   if (_body_fd != -1) {
     close(_body_fd);
     _body_fd = -1;
