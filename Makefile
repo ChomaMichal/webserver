@@ -26,7 +26,7 @@ SOCKETS_SRCS = $(SOCKETS_DIR)/Listener.cpp $(SOCKETS_DIR)/Networking.cpp $(SOCKE
 CONFIG_MAIN = $(CONFIG_DIR)/main.cpp $(STR_SLICE_SRC)
 CONFIG_SRCS = $(CONFIG_DIR)/Config.cpp $(CONFIG_DIR)/Config_Server.cpp $(CONFIG_DIR)/Config_Route.cpp $(CONFIG_DIR)/utils.cpp 
 STR_SLICE_SRC = $(UTILS_DIR)/str_slice/StrSlice.cpp
-CLIENT_SRCS = $(CLIENT_DIR)/main_client.cpp $(CLIENT_DIR)/Client.cpp $(CLIENT_DIR)/Request.cpp $(CLIENT_DIR)/Response.cpp $(SOCKETS_SRCS) $(STR_SLICE_SRC) $(CONFIG_SRCS)
+CLIENT_SRCS = $(CLIENT_DIR)/main_client.cpp $(CLIENT_DIR)/Client.cpp $(CLIENT_DIR)/Request.cpp $(CLIENT_DIR)/Response.cpp $(SOCKETS_SRCS) $(STR_SLICE_SRC) $(CONFIG_SRCS) $(UTILS_DIR)/cstd/cstd.cpp
 REQUEST_SRCS = $(CLIENT_DIR)/main_request.cpp $(CLIENT_DIR)/Client.cpp $(CLIENT_DIR)/Request.cpp $(CLIENT_DIR)/Response.cpp $(SOCKETS_SRCS) $(STR_SLICE_SRC) $(CONFIG_SRCS)
 
 # PHONY targets
@@ -93,7 +93,7 @@ $(CLIENT_BIN): $(CLIENT_SRCS) $(CLIENT_DIR)/Request.hpp | $(BUILD_DIR)
 
 test_client: $(CLIENT_BIN)
 	@echo "Testing client module..."
-	@./$(CLIENT_BIN)
+	@./$(CLIENT_BIN) config_files/simple.conf
 	@echo "✓ Client tests passed"
 
 # Config parser test

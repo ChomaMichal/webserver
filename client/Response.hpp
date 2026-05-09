@@ -1,5 +1,5 @@
 #pragma once
-#include "../utils/option/Option.hpp"
+#include "../utils/cstd/cstd.hpp"
 #include "../utils/result/Result.hpp"
 #include "../utils/str_slice/StrSlice.hpp"
 #include "../config_parse/Config.hpp"
@@ -48,15 +48,16 @@ public:
 //  std::string getStatusReason();
 
  //HANDLE STUFF
- Result<bool> handleRequest(const Request& req, const Config_Server& serv); //#todo
+ Result<bool> handleRequest(const Request& req, const Config_Server& serv);
  Result<bool> handleGet(const Request& req, const Config_Server& serv);
  Result<bool> handlePost(const Request& req, const Config_Server& serv);
  Result<bool> handleDelete(const Request& req, const Config_Server& serv);
  Result<bool> handleError(const Config_Server& serv);
+ Result<bool> handleRedirect();
 
  void setStatusCode(int status_code);
  bool getHeaderSent() const;
- void setFilePath(const Request& req, const Config_Server& serv);
+ void setFilePath(const Request& req);
 
  size_t chunker(char *tmp_buffer, size_t max_len);
 
@@ -87,9 +88,13 @@ private:
  const char *_header_allow_get_post_delete = "Allow: GET, POST, DELETE";
  const char *_header_location = "Location: ";
 
- bool _location;
+
+ const Config_Route * _matched_route;
+ bool _has_location;
+ bool _has_content_type;
+ bool _has_content_length;
  e_content_type _content_type;
- ssize_t _content_len;
+ size_t _content_len;
 
  int _body_fd;
  size_t _body_offset;
@@ -97,6 +102,8 @@ private:
  bool _has_mem_body;
  const char * _root;
  const char * _error;
+ const char * _location;
+ size_t _uri_index;
 
  bool setHeader(const Config_Server& serv);
  void setContentType();
@@ -104,3 +111,5 @@ private:
  bool generateDirectoryIndex(const char *dir_path, const Request &req);
  const char * matchRouteToRoot(const Request& req, const std::vector<Config_Route>& routes);
 };
+
+// for michal <your class> popen(const char * _file_path, enum file_extention, const char *env_var);

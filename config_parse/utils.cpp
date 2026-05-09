@@ -19,7 +19,8 @@ void getline_stripspace(std::ifstream &infile, std::string &line,
   line.erase(0, line.find_first_not_of(" \t"));
   line.erase(line.find_last_not_of(" \t") + 1);
 }
-void get_redirection_pair(std::string line, std::pair<int, std::string> pair) {
+void get_redirection_pair(std::string &line,
+                          std::pair<int, std::string> &pair) {
   size_t space = line.find_first_of(' ');
   if (space == std::string::npos) {
     char *endptr;
@@ -29,7 +30,7 @@ void get_redirection_pair(std::string line, std::pair<int, std::string> pair) {
   } else {
     std::string sredir = line.substr(0, space);
     char *endptr;
-    pair.first = std::strtol(line.c_str(), &endptr, 10);
+    pair.first = std::strtol(sredir.c_str(), &endptr, 10);
     if (*endptr != '\0')
       throw("Invalid Config File: Invalid Redirection");
     pair.second = line.substr(space + 1, std::string::npos);

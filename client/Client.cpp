@@ -70,7 +70,7 @@ Result<bool> Client::sendResponse(void) {
   }
 
   setSendBuffer(temp_buffer, to_send);
-  // std::cout << temp_buffer << std::endl;
+  std::cout << "client :: 73 :: temp_buffer = " << temp_buffer << std::endl;
   auto err = _stream.write();
   if (err.is_error()) {
     return (Result<bool>(err.get_error()));

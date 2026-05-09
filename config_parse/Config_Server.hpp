@@ -1,6 +1,7 @@
 #pragma once
 #include "Config_Route.hpp"
 #include <fstream>
+#include <map>
 #include <string>
 #include <utility>
 #include <vector>
@@ -13,10 +14,6 @@ public:
   const std::string &getServerName() const;
   const bool &getIsDefault() const;
   const std::string &getRoot() const;
-  const std::string &getNotFound() const;
-  const std::string &getUnauthorized() const;
-  const std::string &getConflict() const;
-  const std::string &getMethodNotAllowed() const;
   const bool &getAutoIndex() const;
   const std::string &getDefaultIndex() const;
   const std::pair<int, std::string> &getRedirection() const;
@@ -24,6 +21,9 @@ public:
   const std::string &getUploadLocation() const;
   const ssize_t &getMaxPayloadSize() const;
   const std::vector<Config_Route> &getRoutes() const;
+  const std::map<int, std::string> &getErrors() const;
+  const bool &getRedirectionSet() const;
+  const bool &getRoutesExist() const;
 
 protected:
   void init_members();
@@ -42,6 +42,7 @@ protected:
   std::string Unauthorized;
   std::string Conflict;
   std::string MethodNotAllowed;
+  std::map<int, std::string> errors;
   /*                                                                                                  */
   bool AutoIndex; // allows autoindex. If on, if default index does not exist
                   // when queriying a directory, it will show the directory
@@ -56,4 +57,6 @@ protected:
   bool UploadAllowed;
   std::string UploadLocation; // if upload_allowed == false, this is null
   ssize_t MaxPayloadSize;     // if -1, no payload max
+  bool RedirectionSet;
+  bool RoutesExist;
 };

@@ -1,5 +1,6 @@
 #pragma once
 #include <fstream>
+#include <map>
 #include <string>
 #include <utility>
 #include <vector>
@@ -13,10 +14,6 @@ public:
   const std::string &getServerName() const;
   const bool &getIsDefault() const;
   const std::string &getRoot() const;
-  const std::string &getNotFound() const;
-  const std::string &getUnauthorized() const;
-  const std::string &getConflict() const;
-  const std::string &getMethodNotAllowed() const;
   const bool &getAutoIndex() const;
   const std::string &getDefaultIndex() const;
   const std::pair<int, std::string> &getRedirection() const;
@@ -27,22 +24,21 @@ public:
   const std::string &getLocation() const;
   const std::string &getpy_cgi_route() const;
   const std::string &getphp_cgi_route() const;
+  const std::map<int, std::string> &getErrors() const;
+  const bool &getRedirectionSet() const;
+  const bool &getRootChanged() const;
 
 private:
   bool are_fields_ready();
   std::pair<int, int> InterfacePort; // interface+port pair (example: 127.0.0.1,
                                      // 80). Port set to 80 by default
   std::string ServerName; // name of the server for matching. Can be NULL.
-  std::vector<Config_Route> routes; // vector containing all routes.
-  bool IsDefault;                   // is a default server config
-  std::string root; // default root to be used if the routes don't have a
-                    // root directive. CAN'T BE NULL
+  bool IsDefault;         // is a default server config
+  std::string root;       // default root to be used if the routes don't have a
+                          // root directive. CAN'T BE NULL
   /* Paths to error pages by default. Can be set, or will be populated by
    * default. Will never be NULL */
-  std::string NotFound;
-  std::string Unauthorized;
-  std::string Conflict;
-  std::string MethodNotAllowed;
+  std::map<int, std::string> errors;
   /*                                                                                                  */
   bool AutoIndex; // allows autoindex. If on, if default index does not exist
                   // when queriying a directory, it will show the directory
@@ -60,4 +56,6 @@ private:
   std::string Location;
   std::string py_cgi_route;
   std::string php_cgi_route;
+  bool RootChanged;
+  bool RedirectionSet;
 };

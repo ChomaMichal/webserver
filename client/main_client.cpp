@@ -111,7 +111,6 @@ void handleSigInt(int sig) {
 }
 
 const int PORT = 2222;
-const int BUFFER_SIZE = 4096;
 
 int main(int argc, char **argv) {
   if (argc != 2) {
@@ -226,10 +225,11 @@ int main(int argc, char **argv) {
           element++;
           continue;
         }
+        std::cout << "main :: 228 :: request = " << element->getRequest() << std::endl;
         int addr = INADDR_ANY;
         int port = PORT;
         const Config_Server tmp = config.match_server(addr, port, element->getRequest().getHost());
-        std::cout << "main :: 219 :: tmp_getroot = " << tmp.getRoot() << std::endl;
+        // std::cout << "main :: 219 :: tmp_getroot = " << tmp.getRoot() << std::endl;
         auto response_ret = element->setResponse(tmp);
         if (response_ret.is_error()) {
           std::cerr << response_ret.get_error() << std::endl;
