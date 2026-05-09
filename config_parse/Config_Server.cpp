@@ -185,14 +185,6 @@ const std::string &Config_Server::getServerName() const {
   return this->ServerName;
 }
 const bool &Config_Server::getIsDefault() const { return this->IsDefault; }
-const std::string &Config_Server::getNotFound() const { return this->NotFound; }
-const std::string &Config_Server::getUnauthorized() const {
-  return this->Unauthorized;
-}
-const std::string &Config_Server::getConflict() const { return this->Conflict; }
-const std::string &Config_Server::getMethodNotAllowed() const {
-  return this->MethodNotAllowed;
-}
 const bool &Config_Server::getAutoIndex() const { return this->AutoIndex; }
 const std::string &Config_Server::getDefaultIndex() const {
   return this->DefaultIndex;

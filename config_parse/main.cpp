@@ -4,6 +4,27 @@
 #include <fstream>
 #include <iostream>
 
+static void print_key_error_pages(const std::map<int, std::string> &errors) {
+  const int key_codes[] = {404, 403, 409, 405};
+  const char *key_labels[] = {"Not Found", "Unauthorized", "Conflict",
+                              "Method Not Allowed"};
+
+  for (size_t i = 0; i < 4; ++i) {
+    std::map<int, std::string>::const_iterator it = errors.find(key_codes[i]);
+    std::cout << key_labels[i] << " Page: "
+              << (it != errors.end() ? it->second : "<missing>")
+              << std::endl;
+  }
+}
+
+static void print_all_error_pages(const std::map<int, std::string> &errors) {
+  std::cout << "Error Pages (error map):" << std::endl;
+  for (std::map<int, std::string>::const_iterator it = errors.begin();
+       it != errors.end(); ++it) {
+    std::cout << "  " << it->first << " -> " << it->second << std::endl;
+  }
+}
+
 void print_server_values(const Config_Server &server, int server_index) {
   std::cout << "\n========== SERVER " << server_index
             << " ==========" << std::endl;
@@ -23,12 +44,10 @@ void print_server_values(const Config_Server &server, int server_index) {
   // Root
   std::cout << "Root: " << server.getRoot() << std::endl;
 
-  // Error Pages
-  std::cout << "Not Found Page: " << server.getNotFound() << std::endl;
-  std::cout << "Unauthorized Page: " << server.getUnauthorized() << std::endl;
-  std::cout << "Conflict Page: " << server.getConflict() << std::endl;
-  std::cout << "Method Not Allowed Page: " << server.getMethodNotAllowed()
-            << std::endl;
+  // Error Pages from map (including key status checks)
+  const std::map<int, std::string> &errors = server.getErrors();
+  print_key_error_pages(errors);
+  print_all_error_pages(errors);
 
   // AutoIndex and Default Index
   std::cout << "AutoIndex: " << (server.getAutoIndex() ? "true" : "false")
@@ -37,6 +56,8 @@ void print_server_values(const Config_Server &server, int server_index) {
 
   // Redirection
   const auto &redirection = server.getRedirection();
+  std::cout << "Redirection Set: "
+            << (server.getRedirectionSet() ? "true" : "false") << std::endl;
   std::cout << "Redirection Code: " << redirection.first << std::endl;
   std::cout << "Redirection Content: " << redirection.second << std::endl;
 
@@ -47,6 +68,9 @@ void print_server_values(const Config_Server &server, int server_index) {
 
   // Max Payload Size
   std::cout << "Max Payload Size: " << server.getMaxPayloadSize() << " bytes"
+            << std::endl;
+
+  std::cout << "Routes Exist: " << (server.getRoutesExist() ? "true" : "false")
             << std::endl;
 }
 
@@ -65,18 +89,20 @@ void print_route_values(const Config_Route &route, int route_index) {
   std::cout << "Is Default: " << (route.getIsDefault() ? "true" : "false")
             << std::endl;
   std::cout << "Root: " << route.getRoot() << std::endl;
-
-  std::cout << "Not Found Page: " << route.getNotFound() << std::endl;
-  std::cout << "Unauthorized Page: " << route.getUnauthorized() << std::endl;
-  std::cout << "Conflict Page: " << route.getConflict() << std::endl;
-  std::cout << "Method Not Allowed Page: " << route.getMethodNotAllowed()
+  std::cout << "Root Changed: " << (route.getRootChanged() ? "true" : "false")
             << std::endl;
+
+  const std::map<int, std::string> &errors = route.getErrors();
+  print_key_error_pages(errors);
+  print_all_error_pages(errors);
 
   std::cout << "AutoIndex: " << (route.getAutoIndex() ? "true" : "false")
             << std::endl;
   std::cout << "Default Index: " << route.getDefaultIndex() << std::endl;
 
   const auto &redirection = route.getRedirection();
+  std::cout << "Redirection Set: "
+            << (route.getRedirectionSet() ? "true" : "false") << std::endl;
   std::cout << "Redirection Code: " << redirection.first << std::endl;
   std::cout << "Redirection Content: " << redirection.second << std::endl;
 
