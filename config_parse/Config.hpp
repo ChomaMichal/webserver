@@ -12,7 +12,8 @@ public:
   Config(std::ifstream &infile);
   ~Config();
   const std::vector<Config_Server> &getServers() const;
-  const Config_Server &match_server(int &ip, int &port, const StrSlice &host) const;
+  const Config_Server &match_server(int &ip, int &port,
+                                    const StrSlice &host) const;
   void Populate(std::ifstream &infile);
   // Methods to get stuff
 private:
@@ -21,7 +22,6 @@ private:
 void getline_stripspace(std::ifstream &infile, std::string &line);
 void getline_stripspace(std::ifstream &infile, std::string &line,
                         std::string delim);
-void get_redirection_pair(std::string line, std::pair<int, std::string> pair);
 unsigned int ip_to_int(std::string &ip);
 unsigned int ip_to_int(const char *ip);
 unsigned int ip_to_int(char *ip);
