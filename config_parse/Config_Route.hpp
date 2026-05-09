@@ -14,10 +14,6 @@ public:
   const std::string &getServerName() const;
   const bool &getIsDefault() const;
   const std::string &getRoot() const;
-  const std::string &getNotFound() const;
-  const std::string &getUnauthorized() const;
-  const std::string &getConflict() const;
-  const std::string &getMethodNotAllowed() const;
   const bool &getAutoIndex() const;
   const std::string &getDefaultIndex() const;
   const std::pair<int, std::string> &getRedirection() const;
@@ -42,10 +38,6 @@ private:
                           // root directive. CAN'T BE NULL
   /* Paths to error pages by default. Can be set, or will be populated by
    * default. Will never be NULL */
-  std::string NotFound;
-  std::string Unauthorized;
-  std::string Conflict;
-  std::string MethodNotAllowed;
   std::map<int, std::string> errors;
   /*                                                                                                  */
   bool AutoIndex; // allows autoindex. If on, if default index does not exist

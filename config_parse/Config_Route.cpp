@@ -21,10 +21,6 @@ Config_Route::Config_Route(std::ifstream &infile, Config_Server &server) {
   this->ServerName = server.getServerName();
   this->root = server.getRoot();
   this->IsDefault = server.getIsDefault();
-  this->NotFound = server.getNotFound();
-  this->Unauthorized = server.getUnauthorized();
-  this->Conflict = server.getConflict();
-  this->MethodNotAllowed = server.getMethodNotAllowed();
   this->AutoIndex = server.getAutoIndex();
   this->DefaultIndex = server.getDefaultIndex();
   this->Redirection = server.getRedirection();
@@ -46,9 +42,9 @@ Config_Route::Config_Route(std::ifstream &infile, Config_Server &server) {
   while (!infile.eof()) {
     getline_stripspace(infile, line, " \n");
     if (line == "root") {
-      this->RootChanged = true;
       getline_stripspace(infile, line);
       this->root = line;
+      this->RootChanged = true;
     } else if (line == "400") {
       getline_stripspace(infile, line);
       this->errors[400] = line;
@@ -154,14 +150,6 @@ const std::string &Config_Route::getServerName() const {
 }
 const bool &Config_Route::getIsDefault() const { return this->IsDefault; }
 const std::string &Config_Route::getRoot() const { return this->root; }
-const std::string &Config_Route::getNotFound() const { return this->NotFound; }
-const std::string &Config_Route::getUnauthorized() const {
-  return this->Unauthorized;
-}
-const std::string &Config_Route::getConflict() const { return this->Conflict; }
-const std::string &Config_Route::getMethodNotAllowed() const {
-  return this->MethodNotAllowed;
-}
 const bool &Config_Route::getAutoIndex() const { return this->AutoIndex; }
 const std::string &Config_Route::getDefaultIndex() const {
   return this->DefaultIndex;
