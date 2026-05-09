@@ -1,5 +1,4 @@
 #include "utils.hpp"
-#include <iostream>
 void getline_stripspace(std::ifstream &infile, std::string &line) {
   getline(infile, line);
   line.erase(0, line.find_first_not_of(" \t"));
@@ -30,11 +29,8 @@ void get_redirection_pair(std::string &line,
       throw("Invalid Config File: Invalid Redirection");
   } else {
     std::string sredir = line.substr(0, space);
-    std::cout << sredir << std::endl;
     char *endptr;
     pair.first = std::strtol(sredir.c_str(), &endptr, 10);
-    std::cout << pair.first << std::endl;
-    std::cout << "ENDPTTR:" << std::endl;
     if (*endptr != '\0')
       throw("Invalid Config File: Invalid Redirection");
     pair.second = line.substr(space + 1, std::string::npos);
