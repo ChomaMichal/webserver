@@ -14,10 +14,6 @@ public:
   const std::string &getServerName() const;
   const bool &getIsDefault() const;
   const std::string &getRoot() const;
-  const std::string &getNotFound() const;
-  const std::string &getUnauthorized() const;
-  const std::string &getConflict() const;
-  const std::string &getMethodNotAllowed() const;
   const bool &getAutoIndex() const;
   const std::string &getDefaultIndex() const;
   const std::pair<int, std::string> &getRedirection() const;
