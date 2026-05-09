@@ -36,15 +36,26 @@ void Config_Server::init_members() {
   this->ServerName = "";
   this->IsDefault = false;
   this->root = "root";
-  this->NotFound = "notfound.html"; // change these to correct paths
-  this->Unauthorized = "unauthorized.html";
-  this->Conflict = "conflict.html";
-  this->MethodNotAllowed = "notallowed.html";
+  this->errors[400] = "/errors/400.html";
+  this->errors[403] = "/errors/403.html";
+  this->errors[404] = "/errors/404.html";
+  this->errors[405] = "/errors/405.html";
+  this->errors[409] = "/errors/409.html";
+  this->errors[413] = "/errors/413.html";
+  this->errors[414] = "/errors/414.html";
+  this->errors[415] = "/errors/415.html";
+  this->errors[500] = "/errors/500.html";
+  this->errors[501] = "/errors/501.html";
+  this->errors[502] = "/errors/502.html";
+  this->errors[503] = "/errors/503.html";
+  this->errors[504] = "/errors/504.html";
   this->AutoIndex = true;
   this->DefaultIndex = "index.html";
+  this->RedirectionSet = false;
   this->Redirection.first = -1;
   this->Redirection.second = "";
   this->UploadAllowed = false;
+  this->RoutesExist = false;
   this->UploadLocation = "";
   this->MaxPayloadSize = 10485761;
 }
@@ -69,18 +80,45 @@ Config_Server::Config_Server(std::ifstream &infile) {
       } else if (line == "root") {
         getline_stripspace(infile, line);
         this->root = line;
+      } else if (line == "400") {
+        getline_stripspace(infile, line);
+        this->errors[400] = line;
+      } else if (line == "403") {
+        getline_stripspace(infile, line);
+        this->errors[403] = line;
       } else if (line == "404") {
         getline_stripspace(infile, line);
-        this->NotFound = line;
-      } else if (line == "401") {
-        getline_stripspace(infile, line);
-        this->Unauthorized = line;
-      } else if (line == "409") {
-        getline_stripspace(infile, line);
-        this->Conflict = line;
+        this->errors[404] = line;
       } else if (line == "405") {
         getline_stripspace(infile, line);
-        this->MethodNotAllowed = line;
+        this->errors[405] = line;
+      } else if (line == "409") {
+        getline_stripspace(infile, line);
+        this->errors[409] = line;
+      } else if (line == "413") {
+        getline_stripspace(infile, line);
+        this->errors[413] = line;
+      } else if (line == "414") {
+        getline_stripspace(infile, line);
+        this->errors[414] = line;
+      } else if (line == "415") {
+        getline_stripspace(infile, line);
+        this->errors[415] = line;
+      } else if (line == "500") {
+        getline_stripspace(infile, line);
+        this->errors[500] = line;
+      } else if (line == "501") {
+        getline_stripspace(infile, line);
+        this->errors[501] = line;
+      } else if (line == "502") {
+        getline_stripspace(infile, line);
+        this->errors[502] = line;
+      } else if (line == "503") {
+        getline_stripspace(infile, line);
+        this->errors[503] = line;
+      } else if (line == "504") {
+        getline_stripspace(infile, line);
+        this->errors[504] = line;
       } else if (line == "autoindex") {
         getline_stripspace(infile, line);
         if (line == "on") {
@@ -115,6 +153,7 @@ Config_Server::Config_Server(std::ifstream &infile) {
           throw std::runtime_error("Invalid Config File: invalid payload size");
       } else if (line == "return") {
         getline_stripspace(infile, line);
+        this->RedirectionSet = true;
         get_redirection_pair(line, this->Redirection);
       } else if (line == "location") {
         if (are_fields_ready())
@@ -122,6 +161,7 @@ Config_Server::Config_Server(std::ifstream &infile) {
         else
           throw std::runtime_error(
               "Invalid Config File: Routes should always be at the end");
+        RoutesExist = true;
       } else if (line == "}") {
         if (are_fields_ready())
           return;
@@ -141,7 +181,9 @@ Config_Server::Config_Server(std::ifstream &infile) {
 const std::pair<int, int> &Config_Server::getInterfacePort() const {
   return this->InterfacePort;
 }
-const std::string &Config_Server::getServerName() const { return this->ServerName; }
+const std::string &Config_Server::getServerName() const {
+  return this->ServerName;
+}
 const bool &Config_Server::getIsDefault() const { return this->IsDefault; }
 const std::string &Config_Server::getNotFound() const { return this->NotFound; }
 const std::string &Config_Server::getUnauthorized() const {
@@ -158,7 +200,9 @@ const std::string &Config_Server::getDefaultIndex() const {
 const std::pair<int, std::string> &Config_Server::getRedirection() const {
   return this->Redirection;
 }
-const bool &Config_Server::getUploadAllowed() const { return this->UploadAllowed; }
+const bool &Config_Server::getUploadAllowed() const {
+  return this->UploadAllowed;
+}
 const std::string &Config_Server::getUploadLocation() const {
   return this->UploadLocation;
 }
@@ -166,4 +210,14 @@ const ssize_t &Config_Server::getMaxPayloadSize() const {
   return this->MaxPayloadSize;
 }
 const std::string &Config_Server::getRoot() const { return this->root; }
-const std::vector<Config_Route> &Config_Server::getRoutes() const { return this->routes; }
+const std::vector<Config_Route> &Config_Server::getRoutes() const {
+  return this->routes;
+}
+
+const bool &Config_Server::getRedirectionSet() const {
+  return this->RedirectionSet;
+}
+const std::map<int, std::string> &Config_Server::getErrors() const {
+  return this->errors;
+}
+const bool &Config_Server::getRoutesExist() const { return this->RoutesExist; }

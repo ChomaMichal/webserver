@@ -31,6 +31,9 @@ Config_Route::Config_Route(std::ifstream &infile, Config_Server &server) {
   this->UploadAllowed = server.getUploadAllowed();
   this->UploadLocation = server.getUploadLocation();
   this->MaxPayloadSize = server.getMaxPayloadSize();
+  this->errors = server.getErrors();
+  this->RootChanged = false;
+  this->RedirectionSet = server.getRedirectionSet();
   this->py_cgi_route = "";
   this->php_cgi_route = "";
   std::string line;
@@ -43,20 +46,48 @@ Config_Route::Config_Route(std::ifstream &infile, Config_Server &server) {
   while (!infile.eof()) {
     getline_stripspace(infile, line, " \n");
     if (line == "root") {
+      this->RootChanged = true;
       getline_stripspace(infile, line);
       this->root = line;
+    } else if (line == "400") {
+      getline_stripspace(infile, line);
+      this->errors[400] = line;
+    } else if (line == "403") {
+      getline_stripspace(infile, line);
+      this->errors[403] = line;
     } else if (line == "404") {
       getline_stripspace(infile, line);
-      this->NotFound = line;
-    } else if (line == "401") {
-      getline_stripspace(infile, line);
-      this->Unauthorized = line;
-    } else if (line == "409") {
-      getline_stripspace(infile, line);
-      this->Conflict = line;
+      this->errors[404] = line;
     } else if (line == "405") {
       getline_stripspace(infile, line);
-      this->MethodNotAllowed = line;
+      this->errors[405] = line;
+    } else if (line == "409") {
+      getline_stripspace(infile, line);
+      this->errors[409] = line;
+    } else if (line == "413") {
+      getline_stripspace(infile, line);
+      this->errors[413] = line;
+    } else if (line == "414") {
+      getline_stripspace(infile, line);
+      this->errors[414] = line;
+    } else if (line == "415") {
+      getline_stripspace(infile, line);
+      this->errors[415] = line;
+    } else if (line == "500") {
+      getline_stripspace(infile, line);
+      this->errors[500] = line;
+    } else if (line == "501") {
+      getline_stripspace(infile, line);
+      this->errors[501] = line;
+    } else if (line == "502") {
+      getline_stripspace(infile, line);
+      this->errors[502] = line;
+    } else if (line == "503") {
+      getline_stripspace(infile, line);
+      this->errors[503] = line;
+    } else if (line == "504") {
+      getline_stripspace(infile, line);
+      this->errors[504] = line;
     } else if (line == "autoindex") {
       getline_stripspace(infile, line);
       if (line == "on") {
@@ -90,6 +121,7 @@ Config_Route::Config_Route(std::ifstream &infile, Config_Server &server) {
       if (*last != '\0')
         throw std::runtime_error("Invalid Config File: invalid payload size");
     } else if (line == "return") {
+      this->RedirectionSet = true;
       getline_stripspace(infile, line);
       get_redirection_pair(line, this->Redirection);
     } else if (line == "cgi_extension") {
@@ -146,9 +178,6 @@ const std::string &Config_Route::getUploadLocation() const {
 const ssize_t &Config_Route::getMaxPayloadSize() const {
   return this->MaxPayloadSize;
 }
-const std::vector<Config_Route> &Config_Route::getRoutes() const {
-  return this->routes;
-}
 const std::string &Config_Route::getLocation() const { return this->Location; }
 const std::string &Config_Route::getpy_cgi_route() const {
   return this->py_cgi_route;
@@ -156,3 +185,10 @@ const std::string &Config_Route::getpy_cgi_route() const {
 const std::string &Config_Route::getphp_cgi_route() const {
   return this->php_cgi_route;
 }
+const std::map<int, std::string> &Config_Route::getErrors() const {
+  return this->errors;
+}
+const bool &Config_Route::getRedirectionSet() const {
+  return this->RedirectionSet;
+}
+const bool &Config_Route::getRootChanged() const { return this->RootChanged; }
