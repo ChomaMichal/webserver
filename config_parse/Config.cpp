@@ -26,37 +26,29 @@ unsigned int ip_to_int(char *ip) {
 Config::Config() {}
 Config::~Config() {}
 void Config::Populate(std::ifstream &infile) {
-  try {
-    while (!infile.eof()) {
-      std::string line;
-      getline_stripspace(infile, line);
-      if (line != "server:" && !infile.eof()) {
-        throw(std::runtime_error(
-            "Invalid Config File: invalid server directive"));
-      }
-      if (!infile.eof())
-        this->_servers.push_back(Config_Server(infile));
-      std::cout << "hi!" << std::endl;
+  while (!infile.eof()) {
+    std::string line;
+    getline_stripspace(infile, line);
+    if (line != "server:" && !infile.eof()) {
+      throw(
+          std::runtime_error("Invalid Config File: invalid server directive"));
     }
-  } catch (std::exception &e) {
-    throw e;
+    if (!infile.eof())
+      this->_servers.push_back(Config_Server(infile));
+    std::cout << "hi!" << std::endl;
   }
 }
 Config::Config(std::ifstream &infile) {
-  try {
-    while (!infile.eof()) {
-      std::string line;
-      getline_stripspace(infile, line);
-      if (line != "server:" && !infile.eof()) {
-        throw(std::runtime_error(
-            "Invalid Config File: invalid server directive"));
-      }
-      if (!infile.eof())
-        this->_servers.push_back(Config_Server(infile));
-      std::cout << "hi!" << std::endl;
+  while (!infile.eof()) {
+    std::string line;
+    getline_stripspace(infile, line);
+    if (line != "server:" && !infile.eof()) {
+      throw(
+          std::runtime_error("Invalid Config File: invalid server directive"));
     }
-  } catch (std::exception &e) {
-    throw e;
+    if (!infile.eof())
+      this->_servers.push_back(Config_Server(infile));
+    std::cout << "hi!" << std::endl;
   }
 }
 static bool isStrSliceEqualtoString(const std::string &string,
