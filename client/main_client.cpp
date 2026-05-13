@@ -39,11 +39,6 @@ void print_server_values(const Config_Server &server, int server_index) {
   std::cout << "Root: " << server.getRoot() << std::endl;
 
   // Error Pages
-  std::cout << "Not Found Page: " << server.getNotFound() << std::endl;
-  std::cout << "Unauthorized Page: " << server.getUnauthorized() << std::endl;
-  std::cout << "Conflict Page: " << server.getConflict() << std::endl;
-  std::cout << "Method Not Allowed Page: " << server.getMethodNotAllowed()
-            << std::endl;
 
   // AutoIndex and Default Index
   std::cout << "AutoIndex: " << (server.getAutoIndex() ? "true" : "false")
@@ -80,12 +75,6 @@ void print_route_values(const Config_Route &route, int route_index) {
   std::cout << "Is Default: " << (route.getIsDefault() ? "true" : "false")
             << std::endl;
   std::cout << "Root: " << route.getRoot() << std::endl;
-
-  std::cout << "Not Found Page: " << route.getNotFound() << std::endl;
-  std::cout << "Unauthorized Page: " << route.getUnauthorized() << std::endl;
-  std::cout << "Conflict Page: " << route.getConflict() << std::endl;
-  std::cout << "Method Not Allowed Page: " << route.getMethodNotAllowed()
-            << std::endl;
 
   std::cout << "AutoIndex: " << (route.getAutoIndex() ? "true" : "false")
             << std::endl;
@@ -225,7 +214,7 @@ int main(int argc, char **argv) {
           element++;
           continue;
         }
-        std::cout << "main :: 228 :: request = " << element->getRequest() << std::endl;
+        // std::cout << "main :: 217 :: request = " << element->getRequest() << std::endl;
         int addr = INADDR_ANY;
         int port = PORT;
         const Config_Server tmp = config.match_server(addr, port, element->getRequest().getHost());

@@ -53,7 +53,7 @@ public:
  Result<bool> handlePost(const Request& req, const Config_Server& serv);
  Result<bool> handleDelete(const Request& req, const Config_Server& serv);
  Result<bool> handleError(const Config_Server& serv);
- Result<bool> handleRedirect();
+ Result<bool> handleRedirect(const Config_Server& serv);
 
  void setStatusCode(int status_code);
  bool getHeaderSent() const;
@@ -92,7 +92,6 @@ private:
  const Config_Route * _matched_route;
  bool _has_location;
  bool _has_content_type;
- bool _has_content_length;
  e_content_type _content_type;
  size_t _content_len;
 
@@ -105,7 +104,7 @@ private:
  const char * _location;
  size_t _uri_index;
 
- bool setHeader(const Config_Server& serv);
+ bool setHeader();
  void setContentType();
  bool fileStatRead(struct stat &, const Request &req, const Config_Server& serv);
  bool generateDirectoryIndex(const char *dir_path, const Request &req);
