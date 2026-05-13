@@ -99,7 +99,7 @@ void handleSigInt(int sig) {
   g_exit = 1;
 }
 
-const int PORT = 2222;
+const int PORT = 2223;
 
 int main(int argc, char **argv) {
   if (argc != 2) {

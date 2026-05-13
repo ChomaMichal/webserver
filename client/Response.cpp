@@ -25,6 +25,7 @@ Response& Response::operator=(const Response& in) {
     ft_memcpy(_filepath, in._filepath, MAX_FILE_PATH);
     _status_code = in._status_code;
     _content_type = in._content_type;
+    _has_content_type = in._has_content_type;
     _has_location = in._has_location;
     _content_len = in._content_len;
     _body_fd = in._body_fd;
@@ -198,8 +199,10 @@ Result<bool> Response::handleRequest(const Request& req, const Config_Server& se
     _location = serv.getRedirection().second.c_str();
     return handleRedirect(serv);
   }
-  const std::vector<Config_Route>& routes = serv.getRoutes();
-  _root = matchRouteToRoot(req, routes);
+  if (serv.getRoutesExist()) {
+    const std::vector<Config_Route>& routes = serv.getRoutes();
+    _root = matchRouteToRoot(req, routes);
+  }
   if (!_root || _root[0] == '\0') {
     _root = serv.getRoot().c_str();
     _uri_index = 0;
@@ -288,8 +291,10 @@ bool Response::fileStatRead(struct stat& _file_stat, const Request &req, const C
     return (_status_code = 403, false);
   }
   setContentType();
+  _has_content_type = true;
   // std::cout << "response :: 250 :: filepath = " << _filepath << std::endl;
   if (_content_type == OTHER) {
+    _has_content_type = false;
     return (_status_code = 415, false);
   }
   if (_file_stat.st_size > MAX_REQUEST_BODY_BYTES) {
@@ -398,6 +403,7 @@ bool Response::generateDirectoryIndex(const char *dir_path, const Request &req) 
   }
   _content_len = ft_strlen(_mem_body);
   _content_type = HTML;
+  _has_content_type = true;
   _has_mem_body = true;
   _status_code = 200;
   return true;
@@ -469,7 +475,7 @@ bool Response::setHeader() {
   _header_sent = false;
   ft_memcpy(_header, _http_version, ft_strlen(_http_version) + 1);
 
-  std::cout << "response :: 470 :: status = " << _status_code << std::endl; 
+  std::cout << "response :: 478 :: status = " << _status_code << std::endl; 
   const char code[5] = {(const char)(_status_code / 100 + '0'),
               (const char)(_status_code / 10 % 10 + '0'),
               (const char)(_status_code % 10 + '0'), ' ', 0};
@@ -648,18 +654,92 @@ Result<bool> Response::handleDelete(const Request& req, const Config_Server& ser
 }
 
 
-Result<bool> Response::handleError(const Config_Server& serv) { //TODO
+Result<bool> Response::handleError(const Config_Server& serv) {
   if (_body_fd != -1) {
     close(_body_fd);
     _body_fd = -1;
   }
-  // ft_memset(_filepath, 0, MAX_FILE_PATH);
-  // ft_strcpy(_filepath, _root_error);
 
-  _content_type = PLAIN;
+  _has_mem_body = false;
+  _has_location = false;
+  _has_content_type = false;
   _content_len = 0;
-  if (!setHeader())
-    return Result<bool>("Cannot set error header just send backup error");
+  _body_offset = 0;
+  ft_memset(_filepath, 0, MAX_FILE_PATH);
+
+  const std::map<int, std::string>& errors = serv.getErrors();
+  std::map<int, std::string>::const_iterator it = errors.find(_status_code);
+  bool served_error_page = false;
+  if (it != errors.end()) {
+    const std::string& error_uri = it->second;
+    char error_path[MAX_FILE_PATH] = {};
+    size_t out_len = 0;
+    bool path_ready = true;
+
+    if (_root != NULL) {
+      size_t root_len = ft_strlen(_root);
+      if (root_len >= MAX_FILE_PATH) {
+        path_ready = false;
+      }
+      if (path_ready) {
+        ft_memcpy(error_path, _root, root_len);
+        out_len = root_len;
+        if (out_len > 0 && error_path[out_len - 1] != '/') {
+          if (out_len + 1 >= MAX_FILE_PATH) {
+            path_ready = false;
+          }
+          else {
+            error_path[out_len++] = '/';
+          }
+        }
+      }
+    }
+
+    if (path_ready) {
+      const char* uri = error_uri.c_str();
+      size_t uri_len = error_uri.size();
+      if (uri_len > 0 && uri[0] == '/') {
+        uri++;
+        uri_len--;
+      }
+      if (out_len + uri_len >= MAX_FILE_PATH) {
+        path_ready = false;
+      }
+      else {
+        ft_memcpy(error_path + out_len, uri, uri_len);
+        error_path[out_len + uri_len] = 0;
+
+        struct stat err_stat;
+        if (stat(error_path, &err_stat) == 0 && S_ISREG(err_stat.st_mode) && access(error_path, R_OK) == 0) {
+          ft_memcpy(_filepath, error_path, out_len + uri_len + 1);
+          _content_len = err_stat.st_size;
+          _body_fd = open(_filepath, O_RDONLY);
+          if (_body_fd != -1) {
+            setContentType();
+            _has_content_type = true;
+            if (_content_type != OTHER && setHeader()) {
+              bool ok = true;
+              return Result<bool>(ok);
+            }
+            close(_body_fd);
+            _body_fd = -1;
+            _has_content_type = false;
+            _content_len = 0;
+          }
+        }
+      }
+    }
+  }
+
+  _content_len = 0;
+  _body_fd = -1;
+  _has_mem_body = false;
+  _has_content_type = false;
+  _has_location = false;
+  (void)served_error_page;
+  if (!setHeader()) {
+    return Result<bool>("Cannot set error header");
+  }
   bool ok = true;
   return Result<bool>(ok);
 }
