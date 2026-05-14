@@ -5,6 +5,7 @@
 #include "../utils/str_slice/StrSlice.hpp"
 #include "Request.hpp"
 #include <cstddef>
+#include "../sockets/CGI.hpp"
 #include <iostream>
 #include <sys/stat.h>
 
@@ -93,6 +94,7 @@ private:
   const char *_header_location = "Location: ";
 
   const Config_Route *_matched_route;
+  Option<CGI> _cgi;
   bool _has_location;
   bool _has_content_type;
   e_content_type _content_type;

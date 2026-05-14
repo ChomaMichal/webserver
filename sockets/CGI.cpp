@@ -3,6 +3,14 @@
 #include <stdexcept>
 #include <unistd.h>
 
+struct pollfd &CGI::getPoll(void){
+  return(Networking::pollarr[fd]);
+}
+
+short &CGI::getFdStatus(void){
+  return (getPoll().revents);
+}
+
 CGI::CGI(int fd) : fd(fd) {
   pollarr[fd].fd = fd;
   pollarr[fd].events = 0;

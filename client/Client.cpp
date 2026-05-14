@@ -62,15 +62,15 @@ Result<bool> Client::sendResponse(void) {
     return Result<bool>(not_ready);
   }
 
-  char temp_buffer[MAX_SEND_BUFFER] = {};
-  size_t to_send = _response.chunker(temp_buffer, MAX_SEND_BUFFER);
+  // char temp_buffer[MAX_SEND_BUFFER] = {};
+  size_t to_send = _response.chunker(_send_buffer, MAX_SEND_BUFFER);
   if (to_send == 0) {
     bool done = true;
     return Result<bool>(done);
   }
 
-  setSendBuffer(temp_buffer, to_send);
-  std::cout << "client :: 73 :: temp_buffer = " << temp_buffer << std::endl;
+  // setSendBuffer(temp_buffer, to_send);
+  // std::cout << "client :: 73 :: temp_buffer = " << temp_buffer << std::endl;
   auto err = _stream.write();
   if (err.is_error()) {
     return (Result<bool>(err.get_error()));

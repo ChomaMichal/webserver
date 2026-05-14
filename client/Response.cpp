@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <dirent.h>
 
-Response::Response() : _body_fd(-1) {
+Response::Response() : _body_fd(-1), _cgi(Option<CGI>()) {
   reset();
 }
 
@@ -54,6 +54,7 @@ void Response::reset() {
   ft_memset(_header, 0, MAX_HEADER_SIZE);
 
   ft_memset(_filepath, 0, MAX_FILE_PATH);
+  _cgi = Option<CGI>();
   _status_code = 200;
   _content_type = OTHER;
   _has_location = 0;
@@ -589,6 +590,15 @@ static bool check_post_parent_dir(const char *filepath, int &status_code) {
 }
 
 Result<bool> Response::handlePost(const Request& req, const Config_Server& serv) {
+  if (std::strstr(_filepath, ".py")) {
+    auto res = CGI::run_script(_filepath, _matched_route->getpy_cgi_route().c_str());
+    if (res.is_error())
+      return (_status_code = 500, handleError(serv));
+    _cgi = Option<CGI>(*res); // TODO set content length and content type to none
+    // TODO set header
+    bool ok = true;
+    return Result<bool>(ok);
+  }
   if (!serv.getUploadAllowed() || ft_strncmp(_filepath, serv.getUploadLocation().c_str(), serv.getUploadLocation().size()) != 0) {
     _status_code = 403;
     return handleError(serv);
@@ -765,6 +775,7 @@ size_t Response::chunker(char *tmp_buffer, size_t max_len) {
     return 0;
   }
 
+  // TODO: the has body || has cgi then check pollfd with get fd status and add read + fully sent bool for main loop
   size_t remaining_body = (size_t)_content_len - _body_offset;
   size_t to_read = std::min(max_len, remaining_body);
   
