@@ -25,6 +25,7 @@ public:
   Listener();
   Result<Option<Stream>> accept(void);
   void close(void);
+  struct pollfd &getPoll();
 
 private:
   int fd;

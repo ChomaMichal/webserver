@@ -22,14 +22,14 @@ public:
   static Result<Option<Stream>> accept(Listener &lis);
   int getFd(void) const;
   short getFdStatus(void);
+  struct pollfd &getPoll(void);
   void printBuffer(void) const;
   char *getBuffer(void);
   void close(void);
-
   Stream();
 
+private:
+  Stream(int fd, size_t loc);
   size_t pl_index;
   int fd;
-
-private:
 };
