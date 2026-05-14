@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webserv Test Hub</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f6f1e8;
+            color: #1f2933;
+        }
+        main {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 32px 20px 48px;
+        }
+        h1 {
+            margin: 0 0 12px;
+            font-size: clamp(2rem, 4vw, 3.5rem);
+        }
+        p {
+            line-height: 1.6;
+            color: #586270;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 14px;
+            margin-top: 24px;
+        }
+        a {
+            display: block;
+            padding: 16px;
+            border-radius: 16px;
+            background: #fff;
+            color: #1f2933;
+            text-decoration: none;
+            border: 1px solid rgba(31, 41, 51, 0.12);
+            box-shadow: 0 12px 30px rgba(31, 41, 51, 0.06);
+        }
+        a strong {
+            display: block;
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Browser test hub</h1>
+        <p>This tree is meant to make server behavior visible directly in the browser: autoindex, redirects, upload permissions, and error pages.</p>
+        <div class="grid">
+            <a href="/tests/autoindex-on/"><strong>autoindex-on</strong>Directory listing should appear because no index file is present.</a>
+            <a href="/tests/autoindex-off/"><strong>autoindex-off</strong>This route serves an index page instead of a listing.</a>
+            <a href="/tests/redirect-302/"><strong>redirect-302</strong>This location returns 302 and lands on a target page.</a>
+            <a href="/tests/upload-allowed/"><strong>upload-allowed</strong>Use POST or DELETE against /uploads from the main dashboard.</a>
+            <a href="/tests/upload-denied/"><strong>upload-denied</strong>This route should show upload disabled behavior.</a>
+            <a href="/tests/permission-403/"><strong>permission-403</strong>Directory permissions should block access here.</a>
+            <a href="/tests/errors/"><strong>errors</strong>Browse the named error pages here.</a>
+        </div>
+    </main>
+</body>
+</html>

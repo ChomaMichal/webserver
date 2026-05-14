@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirect 302</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            font-family: Arial, Helvetica, sans-serif;
+            background: radial-gradient(circle at top, rgba(199, 82, 42, 0.16), transparent 40%), #f5efe4;
+            color: #1f2933;
+        }
+        .panel {
+            width: min(720px, calc(100vw - 32px));
+            padding: 28px;
+            border-radius: 20px;
+            background: #fffaf2;
+            border: 1px solid rgba(31, 41, 51, 0.12);
+            box-shadow: 0 18px 42px rgba(31, 41, 51, 0.12);
+        }
+        a { color: #0f766e; }
+    </style>
+</head>
+<body>
+    <section class="panel">
+        <h1>Redirect landing page</h1>
+        <p>If you reached this page from <strong>/tests/redirect-302</strong>, the 302 response is working.</p>
+        <p><a href="/tests/">Back to the test hub</a></p>
+    </section>
+</body>
+</html>

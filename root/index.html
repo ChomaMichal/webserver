@@ -2,35 +2,296 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>api2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webserv Request Dashboard</title>
     <style>
+        :root {
+            color-scheme: light;
+            --bg: #f4f1ea;
+            --panel: #fffaf2;
+            --ink: #1f2933;
+            --muted: #5b6470;
+            --accent: #c7522a;
+            --accent-2: #0f766e;
+            --border: rgba(31, 41, 51, 0.12);
+            --shadow: 0 18px 60px rgba(31, 41, 51, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(199, 82, 42, 0.16), transparent 30%),
+                radial-gradient(circle at top right, rgba(15, 118, 110, 0.14), transparent 28%),
+                linear-gradient(180deg, #f9f6ef 0%, var(--bg) 100%);
         }
-        .container {
-            text-align: center;
+
+        .page {
+            width: min(1080px, calc(100vw - 32px));
+            margin: 0 auto;
+            padding: 32px 0 48px;
         }
-        a {
-            display: block;
-            margin: 10px 0;
+
+        .hero {
+            display: grid;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .eyebrow {
+            margin: 0;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            font-size: 12px;
+            color: var(--accent-2);
+            font-weight: 700;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 4vw, 3.8rem);
+            line-height: 1.02;
+        }
+
+        .lede {
+            margin: 0;
+            max-width: 68ch;
+            color: var(--muted);
+            font-size: 1.03rem;
+            line-height: 1.55;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 18px;
+        }
+
+        .card {
+            background: rgba(255, 250, 242, 0.92);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(8px);
+        }
+
+        .card h2 {
+            margin: 0 0 10px;
+            font-size: 1.15rem;
+        }
+
+        .grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .row {
+            display: grid;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            border: 1px solid rgba(31, 41, 51, 0.18);
+            border-radius: 14px;
+            padding: 12px 14px;
+            background: #fff;
+            color: var(--ink);
+            font: inherit;
+        }
+
+        textarea {
+            min-height: 180px;
+            resize: vertical;
+            font-family: "Courier New", Courier, monospace;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        button {
+            border: 0;
+            border-radius: 999px;
+            padding: 11px 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .primary {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 10px 24px rgba(199, 82, 42, 0.22);
+        }
+
+        .secondary {
+            background: var(--accent-2);
+            color: #fff;
+            box-shadow: 0 10px 24px rgba(15, 118, 110, 0.2);
+        }
+
+        .ghost {
+            background: #f4ede3;
+            color: var(--ink);
+        }
+
+        .stack {
+            display: grid;
+            gap: 10px;
+        }
+
+        .hint {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.92rem;
+            line-height: 1.45;
+        }
+
+        .status {
+            min-height: 140px;
+            white-space: pre-wrap;
+            background: #fff;
+            border: 1px solid rgba(31, 41, 51, 0.12);
+            border-radius: 16px;
+            padding: 14px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.92rem;
+            line-height: 1.5;
+            overflow: auto;
+        }
+
+        .status.ok {
+            border-color: rgba(15, 118, 110, 0.35);
+        }
+
+        .status.error {
+            border-color: rgba(199, 82, 42, 0.35);
+        }
+
+        .quick-links {
+            display: grid;
+            gap: 10px;
+        }
+
+        .quick-links a {
+            display: inline-flex;
+            width: fit-content;
             text-decoration: none;
-            color: #333;
-            font-size: 1.2em;
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(15, 118, 110, 0.08);
+            color: var(--accent-2);
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        @media (max-width: 860px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>My Start Page</h1>
-        <a href="https://www.google.com">Google</a>
-        <a href="https://www.youtube.com">YouTube</a>
-        <a href="https://www.github.com">GitHub</a>
-    </div>
+    <main class="page">
+        <section class="hero">
+            <p class="eyebrow">Webserv test page</p>
+            <h1>Trigger POST, DELETE, and redirect routes with buttons.</h1>
+            <p class="lede">
+                Use this page to exercise the upload location under <strong>/uploads</strong> and the redirect routes in
+                <strong>config_files/simple.conf</strong>. The buttons keep the test flow in the browser so you can verify
+                the server behavior quickly.
+            </p>
+        </section>
+
+        <section class="layout">
+            <div class="card grid">
+                <div>
+                    <h2>Request Builder</h2>
+                    <p class="hint">POST writes content, DELETE removes a file, and the redirect buttons navigate to routes that return 302.</p>
+                </div>
+
+                <div class="row">
+                    <label for="requestPath">Target path</label>
+                    <input id="requestPath" type="text" value="/uploads/demo.txt" spellcheck="false">
+                </div>
+
+                <div class="row">
+                    <label for="requestBody">POST body</label>
+                    <textarea id="requestBody">Hello from the root request dashboard.</textarea>
+                </div>
+
+                <div class="actions">
+                    <button class="primary" id="sendPost" type="button">Send POST</button>
+                    <button class="secondary" id="sendDelete" type="button">Send DELETE</button>
+                    <button class="ghost" id="openRedirect1" type="button">Open /api/hihi</button>
+                    <button class="ghost" id="openRedirect2" type="button">Open /api2</button>
+                    <button class="ghost" id="openHehe" type="button">Open /hehe (custom 333)</button>
+                    <button class="ghost" id="openTests" type="button">Open /tests/ hub</button>
+                </div>
+
+                <div>
+                    <h2>Response</h2>
+                    <div id="status" class="status">Ready.</div>
+                </div>
+            </div>
+
+            <aside class="card stack">
+                <div>
+                    <h2>Quick routes</h2>
+                    <p class="hint">These links point at the existing server files and endpoints in this workspace.</p>
+                </div>
+
+                <div class="pill">POST target: /uploads/demo.txt</div>
+                <div class="pill">DELETE target: /uploads/demo.txt</div>
+
+                <div class="quick-links">
+                    <a href="/uploads/">Open uploads directory</a>
+                    <a href="/tests/">Open browser test hub</a>
+                    <a href="/api/hihi">Redirect route: /api/hihi</a>
+                    <a href="/api2">Redirect route: /api2</a>
+                    <a href="/hehe">Custom status route: /hehe</a>
+                </div>
+
+                <p class="hint">
+                    If the server is running with <code>config_files/simple.conf</code>, the default index should be served from this directory.
+                </p>
+            </aside>
+        </section>
+    </main>
+
+    <script src="request-tools.js"></script>
 </body>
 </html>

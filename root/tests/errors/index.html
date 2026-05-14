@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Errors</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(180deg, #fdf5ef 0%, #f2e5db 100%);
+            color: #1f2933;
+        }
+        main {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 32px 20px 48px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin-top: 24px;
+        }
+        a {
+            display: block;
+            padding: 16px;
+            border-radius: 16px;
+            background: #fff;
+            color: #1f2933;
+            text-decoration: none;
+            border: 1px solid rgba(31, 41, 51, 0.12);
+        }
+        a strong {
+            display: block;
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Error pages</h1>
+        <p>These are the named error pages configured in the server.</p>
+        <div class="grid">
+            <a href="/tests/errors/403.html"><strong>403</strong>Forbidden</a>
+            <a href="/tests/errors/404.html"><strong>404</strong>Not Found</a>
+            <a href="/tests/errors/405.html"><strong>405</strong>Method Not Allowed</a>
+            <a href="/tests/errors/409.html"><strong>409</strong>Conflict</a>
+            <a href="/tests/errors/500.html"><strong>500</strong>Internal Server Error</a>
+        </div>
+        <p><a href="/tests/">Back to the test hub</a></p>
+    </main>
+</body>
+</html>

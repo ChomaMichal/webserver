@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autoindex Off</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(180deg, #f9f3ea 0%, #efe6da 100%);
+            color: #1f2933;
+        }
+        .panel {
+            width: min(680px, calc(100vw - 32px));
+            padding: 28px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(31, 41, 51, 0.12);
+            box-shadow: 0 18px 42px rgba(31, 41, 51, 0.12);
+        }
+        a { color: #0f766e; }
+    </style>
+</head>
+<body>
+    <section class="panel">
+        <h1>Autoindex off</h1>
+        <p>This route should render this file because the directory has an index and autoindex is disabled.</p>
+        <p><a href="/tests/">Back to the test hub</a></p>
+    </section>
+</body>
+</html>

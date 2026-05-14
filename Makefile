@@ -9,7 +9,6 @@ UTILS_DIR = utils
 SOCKETS_DIR = sockets
 CLIENT_DIR = client
 CONFIG_DIR = config_parse
-TMP_DIR = root/tmpfiles
 
 # Output files
 UTILS_BIN = $(BUILD_DIR)/test_utils
@@ -47,11 +46,11 @@ help:
 	@echo "  make test_request   - Run request parser test (listens on port 2222)"
 	@echo "  make all            - Build all modules"
 	@echo "  make clean          - Clean build artifacts"
-	@echo "  make clean_all      - Clean all modules"
+	@echo "  make fclean      - Clean all modules"
 
 # Utils module
 
-re: clean_all all
+re: fclean all
 
 $(BUILD_DIR):
 	@mkdir -p $(BUILD_DIR)
@@ -129,9 +128,8 @@ clean:
 	@echo "✓ Clean complete"
 
 fclean: clean
-	@find . -name "*.o" -delete
-	@find . -name "a.out" -delete
-	@rm -rf $(TMP_DIR)/*
+	@find . -path '*/tests' -prune -o -name "*.o" -exec rm -f {} +
+	@find . -path '*/tests' -prune -o -name "a.out" -exec rm -f {} +
 	@echo "✓ Full clean complete"
 
 # Run all tests
