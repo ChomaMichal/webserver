@@ -27,6 +27,6 @@ public:
   void close(void);
 
 private:
-  size_t pl_index;
+  int fd;
   static void init(void);
 };

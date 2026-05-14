@@ -21,7 +21,6 @@ public:
   Stream &operator=(const Stream &other);
   static Result<Option<Stream>> accept(Listener &lis);
   int getFd(void) const;
-  void setPl(const struct pollfd &fd);
   short getFdStatus(void);
   void printBuffer(void) const;
   char *getBuffer(void);
@@ -30,6 +29,7 @@ public:
   Stream();
 
   size_t pl_index;
-private:
+  int fd;
 
+private:
 };
