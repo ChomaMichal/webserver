@@ -25,8 +25,9 @@ public:
   Listener();
   Result<Option<Stream>> accept(void);
   void close(void);
+  struct pollfd &getPoll();
 
 private:
-  size_t pl_index;
+  int fd;
   static void init(void);
 };

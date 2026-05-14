@@ -6,54 +6,53 @@
 #include <unistd.h>
 
 size_t Listener::fd_refcount[FD_MAX];
+Listener::Listener() : Networking(), fd(0) {}
 
-Listener::Listener() : Networking(), pl_index(0) {}
-
-Listener::Listener(const Listener &other)
-    : Networking(), pl_index(other.pl_index) {
-  if (pl_index >= 0) {
-    fd_refcount[pl_index]++;
+Listener::Listener(const Listener &other) : Networking(), fd(other.fd) {
+  if (fd >= 0) {
+    fd_refcount[fd]++;
   }
 }
 
-Listener::Listener(int fd) : Networking(), pl_index(fd) {
+Listener::Listener(int fd) : Networking(), fd(fd) {
   if (initialized == false) {
     init();
     initialized = true;
   }
   fd_refcount[fd] = 1;
-  pollarr[pl_index].fd = fd;
-  pollarr[pl_index].events = POLLIN;
-  pollarr[pl_index].revents = 0;
+  getPoll().fd = fd;
+  getPoll().events = POLLIN;
+  getPoll().revents = 0;
 }
 
 Listener::~Listener() {
-  if (pl_index >= 0 && pl_index < FD_MAX) {
-    fd_refcount[pl_index]--;
-    if (fd_refcount[pl_index] == 0) {
-      ::close(pl_index);
+  if (fd >= 0 && fd < FD_MAX) {
+    fd_refcount[fd]--;
+    if (fd_refcount[fd] == 0) {
+      ::close(fd);
     }
   }
 }
 
-int Listener::getFd(void) const { return (pollarr[pl_index].fd); }
+int Listener::getFd(void) const { return fd; }
+
 const Listener &Listener::operator=(const Listener &other) {
   if (this != &other) {
-    if (pl_index >= 0 && pl_index < FD_MAX) {
-      fd_refcount[pl_index]--;
-      if (fd_refcount[pl_index] == 0) {
-        ::close(pl_index);
+    if (fd >= 0 && fd < FD_MAX) {
+      fd_refcount[fd]--;
+      if (fd_refcount[fd] == 0) {
+        ::close(fd);
       }
     }
-    this->pl_index = other.pl_index;
-    if (pl_index >= 0 && pl_index < FD_MAX) {
-      fd_refcount[pl_index]++;
+    this->fd = other.fd;
+    if (fd >= 0 && fd < FD_MAX) {
+      fd_refcount[fd]++;
     }
   }
   return *this;
 }
 
-short Listener::getFdStatus(void) { return pollarr[pl_index].revents; }
+short Listener::getFdStatus(void) { return getPoll().revents; }
 
 Result<Option<Stream>> Listener::accept() { return (Stream::accept(*this)); }
 
@@ -101,7 +100,9 @@ Result<Listener> Listener::connect(int port) {
   return rt;
 }
 
+struct pollfd &Listener::getPoll() { return Networking::pollarr[fd]; }
+
 void Listener::close(void) {
-  ::close(Networking::pollarr[pl_index].fd);
-  Networking::pollarr[pl_index].fd = 0;
+  ::close(fd);
+  getPoll().fd = -1;
 }

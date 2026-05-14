@@ -21,15 +21,15 @@ public:
   Stream &operator=(const Stream &other);
   static Result<Option<Stream>> accept(Listener &lis);
   int getFd(void) const;
-  void setPl(const struct pollfd &fd);
   short getFdStatus(void);
+  struct pollfd &getPoll(void);
   void printBuffer(void) const;
   char *getBuffer(void);
   void close(void);
-
   Stream();
 
-  size_t pl_index;
 private:
-
+  Stream(int fd, size_t loc);
+  size_t pl_index;
+  int fd;
 };
