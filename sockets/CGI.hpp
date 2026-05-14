@@ -3,6 +3,7 @@
 
 class CGI : Networking {
 public:
+  void close(void);
   const int &getFd(void);
   CGI(const CGI &other);
   static Result<CGI> run_script(const char *script_path,

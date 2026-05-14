@@ -1,4 +1,5 @@
 #include "CGI.hpp"
+#include "Networking.hpp"
 #include <stdexcept>
 #include <unistd.h>
 
@@ -43,3 +44,8 @@ CGI &CGI::operator=(const CGI &other) {
 }
 
 CGI::CGI(const CGI &other) { *this = other; }
+
+void CGI::close(void) {
+  Networking::pollarr[fd].fd = -1;
+  ::close(fd);
+}
