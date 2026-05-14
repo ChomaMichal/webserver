@@ -5,11 +5,11 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-Listener::Listener() : Networking() {}
+Listener::Listener() : Networking(), fd(0) {}
 
 Listener::Listener(const Listener &other) : Networking(), fd(other.fd) {}
 
-Listener::Listener(int fd) : Networking() {
+Listener::Listener(int fd) : Networking(), fd(fd) {
   if (initialized == false) {
     init();
     initialized = true;
@@ -77,5 +77,5 @@ Result<Listener> Listener::connect(int port) {
 
 void Listener::close(void) {
   ::close(Networking::pollarr[fd].fd);
-  Networking::pollarr[fd].fd = 0;
+  Networking::pollarr[fd].fd = -1;
 }
