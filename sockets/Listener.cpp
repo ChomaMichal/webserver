@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+size_t Listener::fd_refcount[FD_MAX];
 Listener::Listener() : Networking(), fd(0) {}
 
 Listener::Listener(const Listener &other) : Networking(), fd(other.fd) {
