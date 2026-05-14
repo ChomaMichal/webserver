@@ -30,9 +30,12 @@ Result<CGI> CGI::run_script(const char *script_path,
     args[1] = (char *)script_path;
     args[2] = NULL;
     dup2(fds[1], STDOUT_FILENO);
+    ::close(fds[0]);
+    ::close(fds[1]);
     int let = execve(interpteret_path, args, NULL);
     throw std::runtime_error("execve failed");
   } else {
+    ::close(fds[1]);
     CGI ret(fds[0]);
     return Result<CGI>(ret);
   }
