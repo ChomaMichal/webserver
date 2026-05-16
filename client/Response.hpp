@@ -65,9 +65,9 @@ public:
   bool getHeaderSent() const;
   void setFilePath(const Request &req);
 
-  size_t chunker(char *tmp_buffer, size_t max_len);
+  ssize_t chunker(char *tmp_buffer, size_t max_len);
 
-  bool isFullySent() const;
+  bool isFullySent();
   // OCF
   Response();
   Response(const Response &in);
@@ -98,12 +98,13 @@ private:
   bool _has_location;
   bool _has_content_type;
   e_content_type _content_type;
-  size_t _content_len;
+  Option<long> _content_len;
 
   int _body_fd;
   size_t _body_offset;
   char _mem_body[MAX_HEADER_SIZE];
   bool _has_mem_body;
+  bool _cgi_sent;
   const char *_root;
   const char *_error;
   const char *_location;

@@ -21,7 +21,7 @@ CONFIG_BIN = $(BUILD_DIR)/test_config
 
 UTILS_SRCS = $(UTILS_DIR)/main.cpp
 SOCKETS_MAIN = $(SOCKETS_DIR)/main.cpp
-SOCKETS_SRCS = $(SOCKETS_DIR)/Listener.cpp $(SOCKETS_DIR)/Networking.cpp $(SOCKETS_DIR)/Stream.cpp
+SOCKETS_SRCS = $(SOCKETS_DIR)/Listener.cpp $(SOCKETS_DIR)/Networking.cpp $(SOCKETS_DIR)/Stream.cpp $(SOCKETS_DIR)/CGI.cpp
 CONFIG_MAIN = $(CONFIG_DIR)/main.cpp $(STR_SLICE_SRC)
 CONFIG_SRCS = $(CONFIG_DIR)/Config.cpp $(CONFIG_DIR)/Config_Server.cpp $(CONFIG_DIR)/Config_Route.cpp $(CONFIG_DIR)/utils.cpp 
 STR_SLICE_SRC = $(UTILS_DIR)/str_slice/StrSlice.cpp

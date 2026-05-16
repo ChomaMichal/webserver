@@ -195,23 +195,23 @@ int main(int argc, char **argv) {
 
     auto element = arr.begin();
     while (element != arr.end()) {
-      std::cout << "In element loop :: 49" << std::endl;
+      // std::cout << "In element loop :: 198" << std::endl;
 
       if (!element->isResponseReady()) {
         // std::cout << "here\n";
         auto ret = element->recieveRequest();
-        std::cout << "After recieveRequest :: 54" << std::endl;
+        std::cout << "After recieveRequest :: 203" << std::endl;
 
         if (ret.is_error()) {
           std::cerr << ret.get_error() << std::endl;
           element->close();
           element = arr.erase(element);
-          std::cout << "in hehe ::209" << std::endl;
+          // std::cout << "in hehe ::209" << std::endl;
           continue;
         }
 
         if (*ret == false) {
-          std::cout << "if (*ret == false) : 59" << std::endl;
+          // std::cout << "if (*ret == false) : 214" << std::endl;
           element++;
           continue;
         }

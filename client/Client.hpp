@@ -17,7 +17,7 @@ public:
   Result<bool> sendResponse(void);
   Result<bool> setResponse(const Config_Server &); // mehras
   bool isResponseReady(void) const;
-  bool isResponseFullySent(void) const;
+  bool isResponseFullySent(void);
   void close(void);
   Request &getRequest(void);
   Stream &getStream(void);

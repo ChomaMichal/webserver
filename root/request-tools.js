@@ -79,5 +79,9 @@ document.getElementById('openRedirect1').addEventListener('click', () => openRed
 document.getElementById('openRedirect2').addEventListener('click', () => openRedirect('/api2'));
 document.getElementById('openHehe').addEventListener('click', () => openRedirect('/hehe'));
 document.getElementById('openTests').addEventListener('click', () => openRedirect('/tests/'));
+document.getElementById('postPythonCgi').addEventListener('click', () => {
+    requestPathInput.value = '/cgi/python_cgi.py';
+    sendPost();
+});
 
 setStatus('Ready. Use POST, DELETE, or redirect buttons to exercise the server.');

@@ -42,6 +42,9 @@ Response& Response::operator=(const Response& in) {
 Response::~Response() {}
 
 void Response::reset() {
+  if (_cgi.is_some()) {
+    (*_cgi).close();
+  }
   if (_body_fd != -1) {
     close(_body_fd);
   }
@@ -59,12 +62,13 @@ void Response::reset() {
   _content_type = OTHER;
   _has_location = 0;
   _has_content_type = 0;
-  _content_len = 0;
+  _content_len = Option<long>();
   _body_fd = -1;
   _body_offset = 0;
   _root = NULL;
   _error = NULL;
   _location = NULL;
+  _cgi_sent = 0;
   _uri_index = 0;
 }
 
@@ -162,9 +166,9 @@ const char * Response::matchRouteToRoot(const Request& req, const std::vector<Co
   _uri_index = 0;
   for (auto idx = routes.begin(); idx != routes.end(); idx++) {
     const std::string& loc = idx->getLocation();
-    std::cout << "response :: 163 :: locate = " << loc << std::endl;
+    // std::cout << "response :: 163 :: locate = " << loc << std::endl;
     const StrSlice& uri = req.getRequestURI();
-    std::cout << "response :: 165 :: uri = " << uri << std::endl;
+    // std::cout << "response :: 165 :: uri = " << uri << std::endl;
 
     if (uri.getLen() >= loc.size()) {
       bool is_prefix = true;
@@ -215,7 +219,7 @@ Result<bool> Response::handleRequest(const Request& req, const Config_Server& se
     return handleRedirect(serv);
   }
   setFilePath(req);
-  // std::cout << "response :: 212 :: filepath = " << _filepath << std::endl;
+  std::cout << "response :: 222 :: filepath = " << _filepath << std::endl;
   
   if (req.getMethod() == GET) {
     return handleGet(req, serv);
@@ -306,7 +310,7 @@ bool Response::fileStatRead(struct stat& _file_stat, const Request &req, const C
     return (_status_code = 500, false);
   }
 
-  _content_len = _file_stat.st_size;
+  _content_len = Option<long>(_file_stat.st_size);
   return (true);
 }
 
@@ -402,7 +406,7 @@ bool Response::generateDirectoryIndex(const char *dir_path, const Request &req) 
     _status_code = 413;
     return false;
   }
-  _content_len = ft_strlen(_mem_body);
+  _content_len = Option<long>((long)ft_strlen(_mem_body));
   _content_type = HTML;
   _has_content_type = true;
   _has_mem_body = true;
@@ -503,12 +507,14 @@ bool Response::setHeader() {
     if (!memcat(_header, "\r\n", 2, MAX_HEADER_SIZE))
       return false;
   }
-  if (!memcat(_header, _header_content_length, ft_strlen(_header_content_length), MAX_HEADER_SIZE))
-    return false;
-  if (!numcat(_header, _content_len, MAX_HEADER_SIZE))
-    return false;
-  if (!memcat(_header, "\r\n", 2, MAX_HEADER_SIZE))
-    return false;
+  if (_content_len.is_some()) {
+    if (!memcat(_header, _header_content_length, ft_strlen(_header_content_length), MAX_HEADER_SIZE))
+      return false;
+    if (!numcat(_header, _content_len.unwrap(), MAX_HEADER_SIZE))
+      return false;
+    if (!memcat(_header, "\r\n", 2, MAX_HEADER_SIZE))
+      return false;
+  }
   
   if (_has_location) {
 
@@ -526,11 +532,52 @@ bool Response::setHeader() {
     return false;
 
   _header_size = ft_strlen(_header);
-
+  std::cout << "response :: 535 :: _header_size = " << _header_size << std::endl;
   return true;
 }
 
+static bool get_cgi_extension(const char *filepath, e_cgi_extension &extension) {
+  if (filepath == NULL)
+    return false;
+
+  const char *dot = ft_strrchr(filepath, '.');
+  const char *slash = ft_strrchr(filepath, '/');
+
+  if (dot == NULL || (slash != NULL && dot < slash))
+    return false;
+
+  if (ft_strcmp(dot, ".py") == 0) {
+    extension = PYTHON;
+    return true;
+  }
+  if (ft_strcmp(dot, ".php") == 0) {
+    extension = PHP;
+    return true;
+  }
+  return false;
+}
+
 Result<bool> Response::handleGet(const Request& req, const Config_Server& serv) {
+  e_cgi_extension extension;
+  if (get_cgi_extension(_filepath, extension)) {
+    const char *interpreter_path = NULL;
+    if (extension == PYTHON)
+      interpreter_path = _matched_route->getpy_cgi_route().c_str();
+    else if (extension == PHP)
+      interpreter_path = _matched_route->getphp_cgi_route().c_str();
+
+    if (interpreter_path == NULL)
+      return (_status_code = 500, handleError(serv));
+
+    auto res = CGI::run_script(_filepath, interpreter_path);
+    if (res.is_error())
+      return (_status_code = 500, handleError(serv));
+    _cgi = Option<CGI>(*res);
+    if (!setHeader())
+      return (_status_code = 500, handleError(serv));
+    bool ok = true;
+    return Result<bool>(ok);
+  }
   struct stat _file_stat;
   if (!fileStatRead(_file_stat, req, serv))
     return (handleError(serv));
@@ -589,13 +636,27 @@ static bool check_post_parent_dir(const char *filepath, int &status_code) {
   return true;
 }
 
+
 Result<bool> Response::handlePost(const Request& req, const Config_Server& serv) {
-  if (std::strstr(_filepath, ".py")) {
-    auto res = CGI::run_script(_filepath, _matched_route->getpy_cgi_route().c_str());
+  e_cgi_extension extension;
+  if (get_cgi_extension(_filepath, extension)) {
+    const char *interpreter_path = NULL;
+    if (extension == PYTHON)
+      interpreter_path = _matched_route->getpy_cgi_route().c_str();
+    else if (extension == PHP)
+      interpreter_path = _matched_route->getphp_cgi_route().c_str();
+
+    if (interpreter_path == NULL)
+      return (_status_code = 500, handleError(serv));
+
+    auto res = CGI::run_script(_filepath, interpreter_path);
     if (res.is_error())
       return (_status_code = 500, handleError(serv));
-    _cgi = Option<CGI>(*res); // TODO set content length and content type to none
-    // TODO set header
+    _cgi = Option<CGI>(*res);
+    _has_content_type = 1;
+    _content_type = HTML;
+    if (!setHeader())
+      return (_status_code = 500, handleError(serv));
     bool ok = true;
     return Result<bool>(ok);
   }
@@ -673,7 +734,7 @@ Result<bool> Response::handleError(const Config_Server& serv) {
   _has_mem_body = false;
   _has_location = false;
   _has_content_type = false;
-  _content_len = 0;
+  _content_len = Option<long>();
   _body_offset = 0;
   ft_memset(_filepath, 0, MAX_FILE_PATH);
 
@@ -734,14 +795,14 @@ Result<bool> Response::handleError(const Config_Server& serv) {
             close(_body_fd);
             _body_fd = -1;
             _has_content_type = false;
-            _content_len = 0;
+            _content_len = Option<long>();
           }
         }
       }
     }
   }
 
-  _content_len = 0;
+  _content_len = Option<long>();
   _body_fd = -1;
   _has_mem_body = false;
   _has_content_type = false;
@@ -754,7 +815,7 @@ Result<bool> Response::handleError(const Config_Server& serv) {
   return Result<bool>(ok);
 }
 
-size_t Response::chunker(char *tmp_buffer, size_t max_len) {
+ssize_t Response::chunker(char *tmp_buffer, size_t max_len) {
   if (tmp_buffer == NULL || max_len == 0) {
     return 0;
   }
@@ -771,12 +832,24 @@ size_t Response::chunker(char *tmp_buffer, size_t max_len) {
     return to_copy;
   }
 
+  if (_cgi.is_some()) {
+    if ((*_cgi).getFdStatus() & POLLIN) {
+      std::cout << "response :: 814 :: cgi_fd = " << (*_cgi).getFd() << std::endl; 
+      ssize_t read_len = read((*_cgi).getFd(), tmp_buffer, max_len);
+      if (read_len < 0)
+        return ((*_cgi).close(), _cgi = Option<CGI>(), -1);
+      if (read_len == 0)
+        return ((*_cgi).close(), _cgi = Option<CGI>(), _cgi_sent = 1, 0);
+      return read_len;
+    }
+  }
+
   if (_body_fd == -1 && !_has_mem_body) {
     return 0;
   }
 
   // TODO: the has body || has cgi then check pollfd with get fd status and add read + fully sent bool for main loop
-  size_t remaining_body = (size_t)_content_len - _body_offset;
+  size_t remaining_body = (size_t)_content_len.unwrap() - _body_offset;
   size_t to_read = std::min(max_len, remaining_body);
   
   if (_has_mem_body) {
@@ -795,7 +868,7 @@ size_t Response::chunker(char *tmp_buffer, size_t max_len) {
   }
   _body_offset += (size_t)read_len;
 
-  if (_body_offset >= (size_t)_content_len) {
+  if (_body_offset >= _content_len.unwrap()) {
     close(_body_fd);
     _body_fd = -1;
   }
@@ -807,8 +880,26 @@ bool Response::getHeaderSent() const {
   return _header_sent;
 }
 
-bool Response::isFullySent() const {
-  return _header_sent && (_content_len == 0 || _body_offset >= _content_len);
+bool Response::isFullySent() {
+  if (!_header_sent) {
+    return false;
+  }
+
+  if (_content_len.is_some()) {
+    return (_body_offset >= _content_len.unwrap());
+  }
+
+  // No content-length: could be CGI or header-only response
+  if (_cgi_sent) {
+    return true;
+  }
+
+  // If there's no CGI and no content-length, we only had a header -> done
+  if (!_cgi.is_some()) {
+    return true;
+  }
+
+  return false;
 }
 
 Option<int> ft_open(const std::string &filename) {

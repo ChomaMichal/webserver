@@ -62,15 +62,24 @@ Result<bool> Client::sendResponse(void) {
     return Result<bool>(not_ready);
   }
 
-  // char temp_buffer[MAX_SEND_BUFFER] = {};
-  size_t to_send = _response.chunker(_send_buffer, MAX_SEND_BUFFER);
+  memset(_send_buffer, 0, MAX_SEND_BUFFER);
+  ssize_t to_send = _response.chunker(_send_buffer, MAX_SEND_BUFFER);
+
+  static int i = 0;
+  std::cout << "client :: 67 :: to_send = " << to_send << std::endl;
+  std::cout << "client :: 68 :: send_buffer = " << _send_buffer << std::endl;
+  i++;
+  if (i == 10)
+    return Result<bool>("Over");
+  if (to_send == -1)  
+    return Result<bool>("CGI failed");
   if (to_send == 0) {
     bool done = true;
     return Result<bool>(done);
   }
 
-  // setSendBuffer(temp_buffer, to_send);
-  // std::cout << "client :: 73 :: temp_buffer = " << temp_buffer << std::endl;
+  // write the chunk into the shared networking send buffer and set length
+  _send_buffer_len = to_send;
   auto err = _stream.write();
   if (err.is_error()) {
     return (Result<bool>(err.get_error()));
@@ -83,7 +92,7 @@ Result<bool> Client::sendResponse(void) {
   return (Result<bool>(rt));
 }
 
-bool Client::isResponseFullySent(void) const {
+bool Client::isResponseFullySent(void) {
   if (_response_ready == false) {
     return false;
   }

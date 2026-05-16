@@ -12,9 +12,9 @@ public:
   static Result<CGI> run_script(const char *script_path,
                                 const char *interpteret_path);
   CGI &operator=(const CGI &other);
+  CGI();
 
 private:
-  CGI();
   CGI(int fd);
   int fd;
 };
